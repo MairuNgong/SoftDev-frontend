@@ -94,8 +94,6 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
 
-        // (ถ้าต้องการ “ไฮไลต์สตอรี่” ใส่ SliverToBoxAdapter แนวนอนเพิ่มตรงนี้ได้)
-
         // Grid 3 คอลัมน์
         SliverPadding(
           padding: const EdgeInsets.only(top: 8),
