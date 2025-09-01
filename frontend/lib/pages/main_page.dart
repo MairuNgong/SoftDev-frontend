@@ -1,5 +1,6 @@
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:frontend/pages/history_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/search_page.dart';
@@ -20,13 +21,16 @@ class _MainPageState extends State<MainPage> {
     HomePage(),
     SearchPage(),
     ProfilePage(),
+    HistoryPage(),
   ];
+  
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('App'),
+        backgroundColor: Colors.black,
+        // title: const Text('App'),
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -47,6 +51,9 @@ class _MainPageState extends State<MainPage> {
           Icon(Icons.home, size: 30, color: Colors.white),
           Icon(Icons.search, size: 30, color: Colors.white),
           Icon(Icons.person, size: 30, color: Colors.white),
+          Icon(Icons.access_time_filled, size: 30, color: Colors.white)
+    
+
         ],
         onTap: (i) {
           setState(() => _index = i);
