@@ -39,8 +39,8 @@ class _MainPageState extends State<MainPage> {
       // 👉 ใช้ CurvedNavigationBar
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.transparent, // สีพื้นหลังด้านบน (ต้องโปร่งใส)
-        color: Colors.black,            // สีของแถบ navigation
-        buttonBackgroundColor: Colors.black, // สีปุ่มวงกลมตรงกลาง
+        color: Color(0xFF748873),            // สีของแถบ navigation
+        buttonBackgroundColor: Color(0xFF748873), // สีปุ่มวงกลมตรงกลาง
         animationDuration: const Duration(milliseconds: 300),
         index: _index,
         items: const [
