@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/pages/history_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/profile_page.dart';
+import 'package:frontend/pages/rating_page.dart';
 import 'package:frontend/pages/search_page.dart';
 
 
@@ -22,6 +23,7 @@ class _MainPageState extends State<MainPage> {
     SearchPage(),
     ProfilePage(),
     HistoryPage(),
+    RatingPage(),
   ];
   
 
@@ -51,7 +53,8 @@ class _MainPageState extends State<MainPage> {
           Icon(Icons.home, size: 30, color: Colors.white),
           Icon(Icons.search, size: 30, color: Colors.white),
           Icon(Icons.person, size: 30, color: Colors.white),
-          Icon(Icons.access_time_filled, size: 30, color: Colors.white)
+          Icon(Icons.access_time_filled, size: 30, color: Colors.white),
+          Icon(Icons.star, size: 30, color: Colors.white),
     
 
         ],
