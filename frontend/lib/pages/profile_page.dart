@@ -31,12 +31,21 @@ class ProfilePage extends StatelessWidget {
             avatarUrl: _avatarUrl,
             onEdit: () {
               // TODO: เปิดหน้าแก้ไขโปรไฟล์/BottomSheet
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return const EditProfilePage();
-                },
-              );
+showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  shape: const RoundedRectangleBorder(
+    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+  ),
+  builder: (context) {
+    return SizedBox(
+      height: MediaQuery.of(context).size.height * 0.95, // 95% ของหน้าจอ
+      child: const EditProfilePage(),
+    );
+  },
+);
+
+
             
             },
           ),
