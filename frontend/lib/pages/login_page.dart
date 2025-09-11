@@ -18,9 +18,9 @@ class _LoginPageState extends State<LoginPage> {
   Timer? _timer;
   
   final List<String> _backgroundImages = [
-    'assets/loginImages/login_bg_1.jpg',
-    'assets/loginImages/login_bg_2.jpg',
-    'assets/loginImages/login_bg_3.jpg',
+    'assets/login/login_bg_1.jpg',
+    'assets/login/login_bg_2.jpg',
+    'assets/login/login_bg_3.jpg',
   ];
 
   @override
