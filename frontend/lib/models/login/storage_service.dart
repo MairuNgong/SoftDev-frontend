@@ -1,7 +1,8 @@
-import 'package:flutter/material.dart';
+// file: models/login/storage_service.dart
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
-class UserStorageService{
+class UserStorageService {
   final _storage = const FlutterSecureStorage();
 
   // save user token
@@ -9,16 +10,10 @@ class UserStorageService{
     await _storage.write(key: 'user_token', value: token);
   }
 
-  // read user token
-  Future<String?> readUserToken(context) async {
-    try {
-      return await _storage.read(key: 'user_token');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error reading user token: $e')),
-      );
-      return null;
-    }
+  // ✨ แก้ไขตรงนี้: เอา (context) ออก
+  Future<String?> readUserToken() async {
+    // แค่ return ค่าที่อ่านได้ออกไปเลย
+    return await _storage.read(key: 'user_token');
   }
 
   // delete user token (logout)
@@ -31,15 +26,14 @@ class UserStorageService{
     await _storage.write(key: 'user', value: userString);
   }
 
-  // read user data
-  Future<String?> readUserData(context) async {
-    try {
-      return await _storage.read(key: 'user');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error reading user data: $e')),
-      );
-      return null;
-    }
+  // ✨ แก้ไขตรงนี้: เอา (context) ออก
+  Future<String?> readUserData() async {
+    // แค่ return ค่าที่อ่านได้ออกไปเลย
+    return await _storage.read(key: 'user');
+  }
+
+  // (Optional) ฟังก์ชันสำหรับลบข้อมูลทั้งหมดตอน Logout
+  Future<void> deleteAll() async {
+    await _storage.deleteAll();
   }
 }

@@ -4,7 +4,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'dart:async';
-import 'package:frontend/pages/home_page.dart';
 
 class AuthService {
   final _userStorageService = UserStorageService();
@@ -29,6 +28,10 @@ class AuthService {
       if (uri != null) {
         final token = uri.queryParameters['token'];
         final userString = uri.queryParameters['user'];
+        print('userString: $userString');
+        print('token: $token');
+        print('fsdfsdf');
+
         if (token != null && userString != null) {
           await _handleTokenAndUser(token, userString, context);
           // ✨ แจ้งไปยัง MyApp ผ่าน LoginPage
