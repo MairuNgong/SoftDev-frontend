@@ -23,25 +23,24 @@ class _LoginPageState extends State<LoginPage> {
     'assets/login/login_bg_3.jpg',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _authService = AuthService();
-    _authService.handleDeepLink(context);
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_pageController.hasClients) {
-        int nextPage = _pageController.page!.round() + 1;
-        if (nextPage >= _backgroundImages.length) {
-          nextPage = 0;
-        }
-        _pageController.animateToPage(
-          nextPage,
-          duration: const Duration(milliseconds: 1000),
-          curve: Curves.easeIn,
-        );
-      }
-    });
-  }
+@override
+void initState() {
+  super.initState();
+  _authService = AuthService();
+  _authService.handleDeepLink(context, onLoggedIn: widget.onLogin); // ✨ เพิ่ม callback
+  _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
+    if (_pageController.hasClients && _pageController.page != null) {
+      int nextPage = _pageController.page!.round() + 1;
+      if (nextPage >= _backgroundImages.length) nextPage = 0;
+      _pageController.animateToPage(
+        nextPage,
+        duration: const Duration(milliseconds: 1000),
+        curve: Curves.easeIn,
+      );
+    }
+  });
+}
+
 
   @override
   void dispose() {

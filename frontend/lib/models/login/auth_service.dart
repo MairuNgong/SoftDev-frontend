@@ -13,63 +13,47 @@ class AuthService {
 
   final String _authUrl = dotenv.env['BACKEND_API_URL']!;
 
-  // launch the Google auth URL
   Future<void> launchGoogleAuthUrl(BuildContext context) async {
-    final String fullUrl = '$_authUrl/auth/google';
-    final uri = Uri.parse(fullUrl);
-
+    final uri = Uri.parse('$_authUrl/auth/google');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!context.mounted) return;
-      
-      // Debugging
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to launch URL: $fullUrl"),
-          backgroundColor: Colors.red,
-        )
+        SnackBar(content: Text("Failed to launch URL: $uri"), backgroundColor: Colors.red),
       );
     }
   }
 
-  // handle incoming deep links
-  void handleDeepLink(BuildContext context) {
-    _sub = appLinks.uriLinkStream.listen((Uri? uri) {
+  // ✨ เปลี่ยนให้รับ onLoggedIn
+  void handleDeepLink(BuildContext context, {required VoidCallback onLoggedIn}) {
+    _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
         final token = uri.queryParameters['token'];
         final userString = uri.queryParameters['user'];
         if (token != null && userString != null) {
-          if (!context.mounted) return;
-          _handleTokenAndUser(token, userString, context);
+          await _handleTokenAndUser(token, userString, context);
+          // ✨ แจ้งไปยัง MyApp ผ่าน LoginPage
+          onLoggedIn();
         } else {
           if (!context.mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login failed: Missing token or user data.')),
+            const SnackBar(content: Text('Login failed: Missing token or user data.')),
           );
         }
       }
     }, onError: (Object err) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('An error occurred while handling deep link.')),
+          const SnackBar(content: Text('An error occurred while handling deep link.')),
         );
       }
     });
   }
 
-  // saving the user session
-  Future<void> _handleTokenAndUser(
-      String token, String userString, BuildContext context) async {
+  // เก็บ session เท่านั้น ไม่ต้องนำทาง
+  Future<void> _handleTokenAndUser(String token, String userString, BuildContext context) async {
     try {
       await _userStorageService.saveUserToken(token);
       await _userStorageService.saveUserData(userString);
-
-      if (!context.mounted) return;
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -77,11 +61,8 @@ class AuthService {
       );
     }
   }
-  
-  // Method to clean up the listener to prevent memory leaks
+
   void dispose() {
     _sub.cancel();
   }
-
-  // You can add other methods like logout here
 }
