@@ -1,10 +1,8 @@
 import 'package:app_links/app_links.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'dart:async';
-import 'package:frontend/pages/home_page.dart';
 
 class AuthService {
   final _userStorageService = UserStorageService();
@@ -13,75 +11,59 @@ class AuthService {
 
   final String _authUrl = dotenv.env['BACKEND_API_URL']!;
 
-  // launch the Google auth URL
-  Future<void> launchGoogleAuthUrl(BuildContext context) async {
-    final String fullUrl = '$_authUrl/auth/google';
-    final uri = Uri.parse(fullUrl);
-
+  // 1. แก้ไข launchGoogleAuthUrl
+  // เอา BuildContext ออก และใช้ throw Exception แทน
+  Future<void> launchGoogleAuthUrl() async {
+    final uri = Uri.parse('$_authUrl/auth/google');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (!context.mounted) return;
-      
-      // Debugging
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Failed to launch URL: $fullUrl"),
-          backgroundColor: Colors.red,
-        )
-      );
+      // เมื่อเกิด Error ให้โยน Exception ออกไป
+      throw Exception("Failed to launch URL: $uri");
     }
   }
 
-  // handle incoming deep links
-  void handleDeepLink(BuildContext context) {
-    _sub = appLinks.uriLinkStream.listen((Uri? uri) {
+  // 2. แก้ไข handleDeepLink
+  // เปลี่ยน Callback ให้สามารถรับสถานะและข้อความ Error ได้
+  void handleDeepLink({
+    required Function(bool success, String? message) onResult,
+  }) {
+    _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
         final token = uri.queryParameters['token'];
         final userString = uri.queryParameters['user'];
+
         if (token != null && userString != null) {
-          if (!context.mounted) return;
-          _handleTokenAndUser(token, userString, context);
+          try {
+            await _handleTokenAndUser(token, userString);
+            // ✨ แจ้งผลลัพธ์ว่าสำเร็จ
+            onResult(true, null);
+          } catch (e) {
+            // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+            onResult(false, e.toString());
+          }
         } else {
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login failed: Missing token or user data.')),
-          );
+          // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+          onResult(false, 'Login failed: Missing token or user data.');
         }
       }
     }, onError: (Object err) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('An error occurred while handling deep link.')),
-        );
-      }
+      // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+      onResult(false, 'An error occurred while handling deep link.');
     });
   }
 
-  // saving the user session
-  Future<void> _handleTokenAndUser(
-      String token, String userString, BuildContext context) async {
+  // 3. แก้ไข _handleTokenAndUser
+  // เอา BuildContext ออก และใช้ throw Exception แทน
+  Future<void> _handleTokenAndUser(String token, String userString) async {
     try {
       await _userStorageService.saveUserToken(token);
       await _userStorageService.saveUserData(userString);
-
-      if (!context.mounted) return;
-
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const HomePage()),
-      );
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save user session.')),
-      );
+      // เมื่อเกิด Error ให้โยน Exception ออกไป
+      throw Exception('Failed to save user session.');
     }
   }
-  
-  // Method to clean up the listener to prevent memory leaks
+
   void dispose() {
     _sub.cancel();
   }
-
-  // You can add other methods like logout here
 }

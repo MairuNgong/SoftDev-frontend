@@ -13,10 +13,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  late AuthService _authService;
+  // ทำให้ AuthService สามารถเข้าถึงได้ทั้งคลาส
+  final AuthService _authService = AuthService();
   final PageController _pageController = PageController();
   Timer? _timer;
-  
+
   final List<String> _backgroundImages = [
     'assets/login/login_bg_1.jpg',
     'assets/login/login_bg_2.jpg',
@@ -26,14 +27,28 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _authService = AuthService();
-    _authService.handleDeepLink(context);
-    _timer = Timer.periodic(const Duration(seconds: 3), (Timer timer) {
-      if (_pageController.hasClients) {
-        int nextPage = _pageController.page!.round() + 1;
-        if (nextPage >= _backgroundImages.length) {
-          nextPage = 0;
+    // ✨ 1. แก้ไขการเรียกใช้ handleDeepLink
+    _authService.handleDeepLink(
+      onResult: (success, message) {
+        if (success) {
+          // ถ้าสำเร็จ ก็เรียก onLogin เพื่อเปลี่ยนหน้า
+          widget.onLogin();
+        } else if (message != null) {
+          // ถ้าล้มเหลว ให้แสดง SnackBar
+          // ตรวจสอบ `mounted` เพื่อความปลอดภัย
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message), backgroundColor: Colors.red),
+            );
+          }
         }
+      },
+    );
+
+    _timer = Timer.periodic(const Duration(seconds: 5), (Timer timer) {
+      if (_pageController.hasClients && _pageController.page != null) {
+        int nextPage = _pageController.page!.round() + 1;
+        if (nextPage >= _backgroundImages.length) nextPage = 0;
         _pageController.animateToPage(
           nextPage,
           duration: const Duration(milliseconds: 1000),
@@ -43,9 +58,23 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
+  // ✨ 2. สร้างฟังก์ชันสำหรับจัดการการกดปุ่มโดยเฉพาะ
+  void _handleGoogleLogin() async {
+    try {
+      // เรียกใช้ AuthService ที่ไม่มี context
+      await _authService.launchGoogleAuthUrl();
+    } catch (e) {
+      // ดักจับ Exception ที่ Service โยนกลับมา
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   @override
   void dispose() {
-    // ancel the timer when the widget is removed
     _timer?.cancel();
     _authService.dispose();
     _pageController.dispose();
@@ -73,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
           ),
           Opacity(
             opacity: 0.5,
-            child: Container(color: Color.fromARGB(255, 235, 217, 209)),
+            child: Container(color: const Color.fromARGB(255, 235, 217, 209)),
           ),
           Center(
             child: Padding(
@@ -86,7 +115,7 @@ class _LoginPageState extends State<LoginPage> {
                     style: GoogleFonts.marcellusSc(
                       fontSize: 80,
                       fontWeight: FontWeight.normal,
-                      color: Color.fromARGB(255, 255, 255, 255),
+                      color: const Color.fromARGB(255, 255, 255, 255),
                       shadows: const [
                         Shadow(
                           color: Color.fromARGB(255, 184, 124, 76),
@@ -107,13 +136,14 @@ class _LoginPageState extends State<LoginPage> {
                         Column(
                           children: [
                             SocialLoginButton(
-                              onPressed: () {
-                                _authService.launchGoogleAuthUrl(context);
-                              },
+                              // ✨ 3. เรียกใช้ฟังก์ชันที่สร้างไว้ใน onPressed
+                              onPressed: _handleGoogleLogin,
                               icon: Icons.g_mobiledata,
                               label: "Continue with Google",
-                              backgroundColor: Color.fromARGB(255, 116, 136, 115),
-                              textColor: Color.fromARGB(255, 247, 244, 234),
+                              backgroundColor:
+                                  const Color.fromARGB(255, 116, 136, 115),
+                              textColor:
+                                  const Color.fromARGB(255, 247, 244, 234),
                             ),
                           ],
                         ),
