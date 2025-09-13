@@ -27,7 +27,7 @@ class _HomePageState extends State<HomePage> {
     try {
       // 1. ดึงข้อมูล userString จาก Secure Storage
       // (อย่าลืมแก้ readUserData ให้ไม่ต้องรับ context ตามคำแนะนำก่อนหน้านี้)
-      final userString = await _storageService.readUserData(context); // หากยังไม่ได้แก้ ก็ส่ง context ไปก่อน
+      final userString = await _storageService.readUserData(); // หากยังไม่ได้แก้ ก็ส่ง context ไปก่อน
 
       if (userString != null) {
         // 2. แปลง String เป็น User Object ด้วย Model ที่เราสร้างไว้

@@ -28,9 +28,9 @@ class AuthService {
       if (uri != null) {
         final token = uri.queryParameters['token'];
         final userString = uri.queryParameters['user'];
-        print('userString: $userString');
-        print('token: $token');
-        print('fsdfsdf');
+        // print('userString: $userString');
+        // print('token: $token');
+        // print('fsdfsdf');
 
         if (token != null && userString != null) {
           await _handleTokenAndUser(token, userString, context);
