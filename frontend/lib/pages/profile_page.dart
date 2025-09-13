@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/models/%E0%B8%B5user_profile_model.dart';
+import 'package:frontend/models/user_profile_model.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/pages/edit_profile_page.dart';
 import 'package:frontend/widgets/profile/profile_grid.dart';
 import 'package:frontend/widgets/profile/profile_header.dart';
-
+import 'dart:convert';
 // 1. เปลี่ยนจาก StatelessWidget เป็น StatefulWidget
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -25,27 +25,29 @@ class _ProfilePageState extends State<ProfilePage> {
     _profileFuture = _fetchProfileData();
   }
 
-  // ฟังก์ชันสำหรับดึงข้อมูลโปรไฟล์
   Future<ProfileResponse> _fetchProfileData() async {
-    // ดึง email ของผู้ใช้ที่ login อยู่จาก storage
-    final email = await UserStorageService().readUserData().then((userString) {
-      // สมมติว่า userString คือ JSON ที่มี key "email"
-      // หากโครงสร้างต่างจากนี้ ให้ปรับแก้ส่วนนี้
-      if (userString != null) {
-        // อาจจะต้อง decode JSON เพื่อเอา email ออกมา
-        // แต่ถ้า userString คือ email ตรงๆ ก็ใช้ได้เลย
-        // ในเคสของคุณ ต้อง decode ก่อน
-        // final userData = jsonDecode(userString);
-        // return userData['email'];
-        // **สมมติว่าตอนนี้ userString เก็บแค่ email เพื่อความง่าย**
-        return "Not FFound"; // <-- **สำคัญ:** เปลี่ยนเป็นวิธีดึง email จริง
-      }
-      throw Exception('User email not found');
-    });
+  // 1. ดึง userString จาก Storage
+  final userString = await UserStorageService().readUserData();
 
-    // เรียกใช้ ApiService เพื่อดึงข้อมูล profile
-    return ApiService().getUserProfile(email);
+  if (userString == null) {
+    // ถ้าไม่มีข้อมูล user ก็โยน Error ไปเลย
+    throw Exception('User data not found in storage');
   }
+
+  // 2. แปลง String เป็น Map (เหมือนเปิดจดหมาย)
+  final Map<String, dynamic> userDataMap = jsonDecode(userString);
+  
+  // 3. ดึงค่า email ออกมาจาก Map ด้วย key 'email'
+  final String? email = userDataMap['email'];
+
+  if (email == null) {
+    // ถ้าในข้อมูลไม่มี key email ก็โยน Error
+    throw Exception('Email not found in user data');
+  }
+
+  // 4. เรียกใช้ ApiService ด้วย email ที่ดึงมาได้
+  return ApiService().getUserProfile(email);
+}
 
   @override
   Widget build(BuildContext context) {

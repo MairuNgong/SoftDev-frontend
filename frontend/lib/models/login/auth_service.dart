@@ -1,5 +1,4 @@
 import 'package:app_links/app_links.dart';
-import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/models/login/storage_service.dart';
@@ -12,56 +11,55 @@ class AuthService {
 
   final String _authUrl = dotenv.env['BACKEND_API_URL']!;
 
-  Future<void> launchGoogleAuthUrl(BuildContext context) async {
+  // 1. แก้ไข launchGoogleAuthUrl
+  // เอา BuildContext ออก และใช้ throw Exception แทน
+  Future<void> launchGoogleAuthUrl() async {
     final uri = Uri.parse('$_authUrl/auth/google');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Failed to launch URL: $uri"), backgroundColor: Colors.red),
-      );
+      // เมื่อเกิด Error ให้โยน Exception ออกไป
+      throw Exception("Failed to launch URL: $uri");
     }
   }
 
-  // ✨ เปลี่ยนให้รับ onLoggedIn
-  void handleDeepLink(BuildContext context, {required VoidCallback onLoggedIn}) {
+  // 2. แก้ไข handleDeepLink
+  // เปลี่ยน Callback ให้สามารถรับสถานะและข้อความ Error ได้
+  void handleDeepLink({
+    required Function(bool success, String? message) onResult,
+  }) {
     _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
         final token = uri.queryParameters['token'];
         final userString = uri.queryParameters['user'];
-        // print('userString: $userString');
-        // print('token: $token');
-        // print('fsdfsdf');
 
         if (token != null && userString != null) {
-          await _handleTokenAndUser(token, userString, context);
-          // ✨ แจ้งไปยัง MyApp ผ่าน LoginPage
-          onLoggedIn();
+          try {
+            await _handleTokenAndUser(token, userString);
+            // ✨ แจ้งผลลัพธ์ว่าสำเร็จ
+            onResult(true, null);
+          } catch (e) {
+            // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+            onResult(false, e.toString());
+          }
         } else {
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Login failed: Missing token or user data.')),
-          );
+          // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+          onResult(false, 'Login failed: Missing token or user data.');
         }
       }
     }, onError: (Object err) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An error occurred while handling deep link.')),
-        );
-      }
+      // ✨ แจ้งผลลัพธ์ว่าล้มเหลว พร้อมข้อความ Error
+      onResult(false, 'An error occurred while handling deep link.');
     });
   }
 
-  // เก็บ session เท่านั้น ไม่ต้องนำทาง
-  Future<void> _handleTokenAndUser(String token, String userString, BuildContext context) async {
+  // 3. แก้ไข _handleTokenAndUser
+  // เอา BuildContext ออก และใช้ throw Exception แทน
+  Future<void> _handleTokenAndUser(String token, String userString) async {
     try {
       await _userStorageService.saveUserToken(token);
       await _userStorageService.saveUserData(userString);
     } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to save user session.')),
-      );
+      // เมื่อเกิด Error ให้โยน Exception ออกไป
+      throw Exception('Failed to save user session.');
     }
   }
 

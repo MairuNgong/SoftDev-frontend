@@ -1,7 +1,7 @@
 // file: services/api_service.dart
 
 import 'package:dio/dio.dart';
-import 'package:frontend/models/%E0%B8%B5user_profile_model.dart';
+import 'package:frontend/models/user_profile_model.dart';
 import '../models/login/storage_service.dart'; // <-- import storage service
 
 class ApiService {
