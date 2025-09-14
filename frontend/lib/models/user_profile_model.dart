@@ -61,5 +61,21 @@ class UserProfile {
       createdAt: DateTime.parse(json['createdAt']), // แปลง String เป็น DateTime
       updatedAt: DateTime.parse(json['updatedAt']),
     );
+
+    
+  }
+
+   Map<String, dynamic> toJson() {
+    return {
+      'email': email,
+      'name': name,
+      'Bio': bio,
+      'Location': location,
+      'ProfilePicture': profilePicture,
+      'RatingScore': ratingScore,
+      'Contact': contact,
+      'IDcard': idCard,
+      // ไม่ต้องส่ง createdAt และ updatedAt กลับไป
+    };
   }
 }

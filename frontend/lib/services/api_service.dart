@@ -4,6 +4,9 @@ import 'package:dio/dio.dart';
 import 'package:frontend/models/user_profile_model.dart';
 import '../models/login/storage_service.dart'; // <-- import storage service
 
+import 'dart:io'; // <-- import สำหรับใช้ File
+import 'package:path/path.dart' as p; // <-- import เพื่อเอาชื่อไฟล์
+
 class ApiService {
   ApiService._internal() {
     // เพิ่ม Interceptor ตอนที่สร้าง object ครั้งแรก
@@ -63,6 +66,49 @@ class ApiService {
       return ProfileResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to load user profile: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+  /// อัปโหลดรูปภาพโปรไฟล์
+  Future<UserProfile> updateUserProfile({
+    required Map<String, dynamic> userData, // ข้อมูลที่จะอัปเดต
+    File? imageFile,                      // รูปภาพ (อาจจะไม่มีก็ได้)
+  }) async {
+    try {
+      // 1. สร้าง FormData object
+      // FormData เหมือนกล่องพัสดุที่ใส่ได้ทั้งของ (ไฟล์) และจดหมาย (text)
+      final formData = FormData.fromMap(userData);
+
+      // 2. ถ้ามีไฟล์รูปภาพแนบมาด้วย...
+      if (imageFile != null) {
+        String fileName = p.basename(imageFile.path); // ดึงชื่อไฟล์จาก path
+        formData.files.add(
+          MapEntry(
+            'ProfilePicture', // 'Key' ต้องตรงกับที่ Backend กำหนด
+            await MultipartFile.fromFile(
+              imageFile.path,
+              filename: fileName,
+            ),
+          ),
+        );
+      }
+      
+      // 3. ยิง PUT request ไปที่ endpoint /users
+      // dio จะตั้งค่า Content-Type เป็น multipart/form-data ให้เอง
+      final response = await _dio.put(
+        '/users',
+        data: formData,
+      );
+
+      // 4. แปลง JSON ที่ได้รับกลับมาเป็น Object แล้วส่งคืน
+      // สังเกตว่า response จาก API ของคุณไม่ได้หุ้มด้วย key 'user'
+      return UserProfile.fromJson(response.data); 
+
+    } on DioException catch (e) {
+      // จัดการ Error
+      throw Exception('Failed to update profile: ${e.message}');
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }
