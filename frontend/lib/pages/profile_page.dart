@@ -78,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         // สร้าง UI หลักด้วยข้อมูลจริง
        return Scaffold(
+        
         body: CustomScrollView(
           slivers: [
             SliverToBoxAdapter(
@@ -86,6 +87,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 location: userProfile.location ?? 'ยังไม่ได้ระบุ',
                 avatarUrl: userProfile.profilePicture ??
                     'https://via.placeholder.com/150',
+                bio: userProfile.bio ?? 'ยังไม่ได้ระบุ',               // ✨ ส่ง bio เข้าไป
+                contact: userProfile.contact  ?? 'ยังไม่ได้ระบุ',       // ✨ ส่ง contact เข้าไป
+
                 onEdit: () async {
                   final updatedProfile =
                       await showModalBottomSheet<UserProfile>(
