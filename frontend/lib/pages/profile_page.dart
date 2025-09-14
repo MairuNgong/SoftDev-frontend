@@ -6,6 +6,7 @@ import 'package:frontend/pages/edit_profile_page.dart';
 import 'package:frontend/widgets/profile/profile_grid.dart';
 import 'package:frontend/widgets/profile/profile_header.dart';
 import 'dart:convert';
+
 // 1. เปลี่ยนจาก StatelessWidget เป็น StatefulWidget
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -26,28 +27,28 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<ProfileResponse> _fetchProfileData() async {
-  // 1. ดึง userString จาก Storage
-  final userString = await UserStorageService().readUserData();
+    // 1. ดึง userString จาก Storage
+    final userString = await UserStorageService().readUserData();
 
-  if (userString == null) {
-    // ถ้าไม่มีข้อมูล user ก็โยน Error ไปเลย
-    throw Exception('User data not found in storage');
+    if (userString == null) {
+      // ถ้าไม่มีข้อมูล user ก็โยน Error ไปเลย
+      throw Exception('User data not found in storage');
+    }
+
+    // 2. แปลง String เป็น Map (เหมือนเปิดจดหมาย)
+    final Map<String, dynamic> userDataMap = jsonDecode(userString);
+
+    // 3. ดึงค่า email ออกมาจาก Map ด้วย key 'email'
+    final String? email = userDataMap['email'];
+
+    if (email == null) {
+      // ถ้าในข้อมูลไม่มี key email ก็โยน Error
+      throw Exception('Email not found in user data');
+    }
+
+    // 4. เรียกใช้ ApiService ด้วย email ที่ดึงมาได้
+    return ApiService().getUserProfile(email);
   }
-
-  // 2. แปลง String เป็น Map (เหมือนเปิดจดหมาย)
-  final Map<String, dynamic> userDataMap = jsonDecode(userString);
-  
-  // 3. ดึงค่า email ออกมาจาก Map ด้วย key 'email'
-  final String? email = userDataMap['email'];
-
-  if (email == null) {
-    // ถ้าในข้อมูลไม่มี key email ก็โยน Error
-    throw Exception('Email not found in user data');
-  }
-
-  // 4. เรียกใช้ ApiService ด้วย email ที่ดึงมาได้
-  return ApiService().getUserProfile(email);
-}
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
         // กรณี: เกิด Error
         if (snapshot.hasError) {
-          return Center(
-            child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'),
-          );
+          return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
         }
 
         // กรณี: ไม่มีข้อมูล
@@ -83,31 +82,47 @@ class _ProfilePageState extends State<ProfilePage> {
               child: ProfileHeader(
                 // 5. ส่งข้อมูลจริงจาก API ไปยัง Widget ลูก
                 username: userProfile.name,
-                location: userProfile.location ?? 'ยังไม่ได้ระบุ', // ใช้ ?? เพื่อกำหนดค่า default ถ้าเป็น null
-                avatarUrl: userProfile.profilePicture ?? 'https://via.placeholder.com/150', // ใส่ URL รูปภาพ default
-                onEdit: () {
-                  showModalBottomSheet(
+                location:
+                    userProfile.location ??
+                    'ยังไม่ได้ระบุ', // ใช้ ?? เพื่อกำหนดค่า default ถ้าเป็น null
+                avatarUrl:
+                    userProfile.profilePicture ??
+                    'https://via.placeholder.com/150', // ใส่ URL รูปภาพ default
+                onEdit: () async {
+                  // `userProfile` คือตัวแปรที่ได้มาจาก snapshot.data.user ใน FutureBuilder
+                  // ทำให้ showModalBottomSheet สามารถส่งค่ากลับมาได้
+                  final updatedProfile = await showModalBottomSheet<UserProfile>(
                     context: context,
                     isScrollControlled: true,
                     shape: const RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.vertical(top: Radius.circular(16)),
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(16),
+                      ),
                     ),
                     builder: (context) {
-                      return SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.95,
-                        child: const EditProfilePage(),
-                      );
+                      // 👇 **จุดที่แก้ไข:** ส่ง userProfile เข้าไปใน EditProfilePage
+                      return EditProfilePage(currentUserProfile: userProfile);
                     },
                   );
+
+                  // (Optional but Recommended)
+                  // ถ้ามีการบันทึกข้อมูลและส่งค่ากลับมา (updatedProfile ไม่ใช่ null)
+                  // ให้ทำการ refresh หน้า ProfilePage ใหม่อีกครั้ง
+                  if (updatedProfile != null) {
+                    setState(() {
+                      _profileFuture = _fetchProfileData();
+                    });
+                  }
                 },
               ),
             ),
             // TODO: ในอนาคต `_gridImages` ควรมาจาก profileResponse.items
-            ProfileGrid(images: const [
-              'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=800',
-              'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
-            ]),
+            ProfileGrid(
+              images: const [
+                'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=800',
+                'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
+              ],
+            ),
           ],
         );
       },
