@@ -39,6 +39,7 @@ dependencies:
   url_launcher: ^6.2.5
   app_links: ^6.4.1
   dio: ^5.9.0
+  swipe_cards: ^2.0.0
 
 
 

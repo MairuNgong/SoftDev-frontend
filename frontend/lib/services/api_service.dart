@@ -113,4 +113,27 @@ class ApiService {
       throw Exception('An unknown error occurred: $e');
     }
   }
+
+  Future<List<String>> getForYouItems() async {
+    try {
+      final response = await _dio.get('/...');
+      List<String> items = List<String>.from(response.data['items']);
+      return items;
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch "For You" items: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+  Future<List<String>> getRequestItems() async {
+    try {
+      final response = await _dio.get('/...');
+      List<String> items = List<String>.from(response.data['items']);
+      return items;
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch "For You" items: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
 }
