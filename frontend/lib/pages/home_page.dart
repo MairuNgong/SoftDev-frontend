@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   String _currentOption = 'FOR_YOU';
   // Data from backend
   List<String> forYouItems = [];
-  List<String> requestItems = [];
+  List<String> requestItems = ["Alice", "Bob", "Charlie", "Diana", "Ethan"];
 
   @override
   void initState() {
@@ -65,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchForYou() async {
     final api = ApiService();
     try {
-      final items = await api.getForYouItems();
+      final items = await api.getForYouItems(_user!.email);
       setState(() {
         forYouItems = items;
       });
@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _fetchRequest() async {
     final api = ApiService();
     try {
-      final items = await api.getRequestItems();
+      final items = await api.getRequestItems(_user!.email);
       setState(() {
         forYouItems = items;
       });

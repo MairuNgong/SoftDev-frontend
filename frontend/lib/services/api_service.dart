@@ -114,9 +114,9 @@ class ApiService {
     }
   }
 
-  Future<List<String>> getForYouItems() async {
+  Future<List<String>> getForYouItems(String email) async {
     try {
-      final response = await _dio.get('/...');
+      final response = await _dio.get('/un_watched_item/$email');
       List<String> items = List<String>.from(response.data['items']);
       return items;
     } on DioException catch (e) {
@@ -125,7 +125,7 @@ class ApiService {
       throw Exception('An unknown error occurred: $e');
     }
   }
-  Future<List<String>> getRequestItems() async {
+  Future<List<String>> getRequestItems(String email) async {
     try {
       final response = await _dio.get('/...');
       List<String> items = List<String>.from(response.data['items']);
