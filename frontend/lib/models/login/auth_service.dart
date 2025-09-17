@@ -7,14 +7,14 @@ import 'dart:async';
 class AuthService {
   final _userStorageService = UserStorageService();
   final appLinks = AppLinks();
-  late StreamSubscription _sub;
+  StreamSubscription? _sub;
 
   final String _authUrl = dotenv.env['BACKEND_API_URL']!;
 
   // 1. แก้ไข launchGoogleAuthUrl
   // เอา BuildContext ออก และใช้ throw Exception แทน
   Future<void> launchGoogleAuthUrl() async {
-    final uri = Uri.parse('$_authUrl/auth/google');
+    final uri = Uri.parse('$_authUrl/auth/google?prompt=select_account&prompt=consent');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       // เมื่อเกิด Error ให้โยน Exception ออกไป
       throw Exception("Failed to launch URL: $uri");
@@ -64,6 +64,6 @@ class AuthService {
   }
 
   void dispose() {
-    _sub.cancel();
+    _sub?.cancel();
   }
 }

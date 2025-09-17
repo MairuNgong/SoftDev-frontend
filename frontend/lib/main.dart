@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend/models/login/auth_service.dart';
 import 'package:frontend/models/login/storage_service.dart'; // <-- 1. Import Service
 import 'package:frontend/pages/login_page.dart';
 import 'package:frontend/pages/main_page.dart';
@@ -18,13 +19,15 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  late AuthService authService;
   bool _isLoggedIn = false;
   // ✨ 2. เพิ่ม State สำหรับสถานะการโหลด
   bool _isLoading = true;
-
+  
   @override
   void initState() {
     super.initState();
+    authService = AuthService();
     // ✨ 3. เรียกฟังก์ชันเพื่อตรวจสอบสถานะการล็อกอินเมื่อแอปเริ่มทำงาน
     _checkLoginStatus();
   }
@@ -39,13 +42,22 @@ class _MyAppState extends State<MyApp> {
   }
 
   /// Callback สำหรับเปลี่ยนสถานะเป็นล็อกอิน
-  void _handleLogin() => setState(() => _isLoggedIn = true);
+  void _handleLogin() {
+    setState(() {
+      _isLoggedIn = true;
+      authService = AuthService(); // <-- Re-initialize for new login
+    });
+  }
 
   /// Callback สำหรับเปลี่ยนสถานะเป็นล็อกเอาท์
   void _handleLogout() async {
     // ✨ 4. เคลียร์ข้อมูลทั้งหมดใน Storage ก่อน
     await UserStorageService().deleteAll();
-    setState(() => _isLoggedIn = false);
+    authService.dispose();
+    setState(() {
+      _isLoggedIn = false;
+      authService = AuthService(); // <-- Re-initialize after logout
+    });
   }
 
   @override
