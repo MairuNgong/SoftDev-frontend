@@ -34,6 +34,8 @@ class UserProfile {
   final String? idCard;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<String> interestedCategories;
+
 
   UserProfile({
     required this.email,
@@ -46,6 +48,7 @@ class UserProfile {
     this.idCard,
     required this.createdAt,
     required this.updatedAt,
+    required this.interestedCategories,
   });
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
@@ -60,12 +63,14 @@ class UserProfile {
       idCard: json['IDcard'],
       createdAt: DateTime.parse(json['createdAt']), // แปลง String เป็น DateTime
       updatedAt: DateTime.parse(json['updatedAt']),
+    interestedCategories: List<String>.from(json['InterestedCategories'] ?? []),
+
     );
 
     
   }
 
-   Map<String, dynamic> toJson() {
+   Map<String, dynamic> toJson() { // เพิ่ม method toJson() สำหรับแปลง Object กลับเป็น JSON
     return {
       'email': email,
       'name': name,
@@ -75,6 +80,7 @@ class UserProfile {
       'RatingScore': ratingScore,
       'Contact': contact,
       'IDcard': idCard,
+      'InterestedCategories': interestedCategories,
       // ไม่ต้องส่ง createdAt และ updatedAt กลับไป
     };
   }

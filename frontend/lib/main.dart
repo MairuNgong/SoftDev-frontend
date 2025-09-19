@@ -64,7 +64,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(useMaterial3: true
+      ),
+      
       // ✨ 5. ใช้ State ในการเลือกหน้าจอที่จะแสดงผล
       home: _isLoading
           // ถ้ากำลังโหลด: แสดงหน้าจอรอ
