@@ -3,7 +3,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/models/user_profile_model.dart';
 import '../models/login/storage_service.dart'; // <-- import storage service
-
 import 'dart:io'; // <-- import สำหรับใช้ File
 import 'package:path/path.dart' as p; // <-- import เพื่อเอาชื่อไฟล์
 
@@ -28,28 +27,17 @@ class ApiService {
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          // 1. สร้าง instance ของ StorageService
           final storage = UserStorageService();
-          
-          // 2. อ่าน Token ที่เก็บไว้
-          final token = await storage.readUserToken(); // แก้เป็น method ที่ไม่มี context
-
-          // 3. ถ้ามี Token, ให้ใส่ใน Header
+          final token = await storage.readUserToken();
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
             print('Token added to header!');
           }
-          
-          // 4. ส่ง request ต่อไป
           return handler.next(options);
         },
         onError: (DioException e, handler) async {
-          // (Optional) คุณสามารถจัดการ error ที่เกี่ยวกับ token ได้ตรงนี้
-          // เช่น ถ้า token หมดอายุ (ได้ status 401) ก็ให้ redirect ไปหน้า login
           if (e.response?.statusCode == 401) {
             print('Token expired or invalid.');
-            // await storage.deleteAll(); // ล้าง token เก่า
-            // redirect to login page...
           }
           return handler.next(e);
         },
@@ -58,11 +46,10 @@ class ApiService {
   }
   // ===================================
 
-  /// ดึงข้อมูลโปรไฟล์ของผู้ใช้จากอีเมล (แก้ให้ return ProfileResponse)
+  /// ดึงข้อมูลโปรไฟล์ของผู้ใช้จากอีเมล
   Future<ProfileResponse> getUserProfile(String email) async {
     try {
       final response = await _dio.get('/users/profile/$email');
-      // ตอนนี้เราไม่ต้องกังวลเรื่องการใส่ Token แล้ว เพราะ Interceptor จัดการให้!
       return ProfileResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to load user profile: ${e.message}');
@@ -71,22 +58,18 @@ class ApiService {
     }
   }
 
-  /// อัปโหลดรูปภาพโปรไฟล์
+  /// อัปเดตโปรไฟล์ผู้ใช้ พร้อมอัปโหลดรูปภาพ
   Future<UserProfile> updateUserProfile({
-    required Map<String, dynamic> userData, // ข้อมูลที่จะอัปเดต
-    File? imageFile,                      // รูปภาพ (อาจจะไม่มีก็ได้)
+    required Map<String, dynamic> userData,
+    File? imageFile,
   }) async {
     try {
-      // 1. สร้าง FormData object
-      // FormData เหมือนกล่องพัสดุที่ใส่ได้ทั้งของ (ไฟล์) และจดหมาย (text)
       final formData = FormData.fromMap(userData);
-
-      // 2. ถ้ามีไฟล์รูปภาพแนบมาด้วย...
       if (imageFile != null) {
-        String fileName = p.basename(imageFile.path); // ดึงชื่อไฟล์จาก path
+        String fileName = p.basename(imageFile.path);
         formData.files.add(
           MapEntry(
-            'ProfilePicture', // 'Key' ต้องตรงกับที่ Backend กำหนด
+            'ProfilePicture',
             await MultipartFile.fromFile(
               imageFile.path,
               filename: fileName,
@@ -94,21 +77,28 @@ class ApiService {
           ),
         );
       }
-      
-      // 3. ยิง PUT request ไปที่ endpoint /users
-      // dio จะตั้งค่า Content-Type เป็น multipart/form-data ให้เอง
       final response = await _dio.put(
         '/users',
         data: formData,
       );
-
-      // 4. แปลง JSON ที่ได้รับกลับมาเป็น Object แล้วส่งคืน
-      // สังเกตว่า response จาก API ของคุณไม่ได้หุ้มด้วย key 'user'
-      return UserProfile.fromJson(response.data); 
-
+      return UserProfile.fromJson(response.data);
     } on DioException catch (e) {
-      // จัดการ Error
       throw Exception('Failed to update profile: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+  /// อัปเดต Category ที่ผู้ใช้สนใจ
+  Future<void> updateUserCategories(List<String> categoryNames) async {
+    try {
+      final body = {'categoryNames': categoryNames};
+      await _dio.put(
+        '/users',
+        data: body,
+      );
+    } on DioException catch (e) {
+      throw Exception('Failed to update categories: ${e.response?.data['message'] ?? e.message}');
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }
@@ -125,15 +115,18 @@ class ApiService {
       throw Exception('An unknown error occurred: $e');
     }
   }
+
   Future<List<String>> getRequestItems(String email) async {
     try {
-      final response = await _dio.get('/...');
+      // TODO: ใส่ endpoint ที่ถูกต้อง
+      final response = await _dio.get('/...'); 
       List<String> items = List<String>.from(response.data['items']);
       return items;
     } on DioException catch (e) {
-      throw Exception('Failed to fetch "For You" items: ${e.message}');
+      throw Exception('Failed to fetch "Request" items: ${e.message}');
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }
   }
-}
+
+} 

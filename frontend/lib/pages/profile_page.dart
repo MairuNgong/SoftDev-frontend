@@ -7,8 +7,9 @@ import 'package:frontend/pages/edit_profile_page.dart';
 import 'package:frontend/widgets/profile/profile_grid.dart';
 import 'package:frontend/widgets/profile/profile_header.dart';
 import 'dart:convert';
+import 'package:frontend/widgets/category_selection_modal.dart';
+import 'package:frontend/widgets/category_selection_modal.dart' show allCategories, CategorySelectionModal;
 
-// 1. เปลี่ยนจาก StatelessWidget เป็น StatefulWidget
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -17,126 +18,157 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // 2. สร้างตัวแปร Future เพื่อเก็บผลลัพธ์การดึงข้อมูล Profile
   late Future<ProfileResponse> _profileFuture;
 
   @override
   void initState() {
     super.initState();
-    // 3. เริ่มต้นกระบวนการดึงข้อมูลทันทีที่หน้านี้ถูกสร้าง
     _profileFuture = _fetchProfileData();
   }
 
   Future<ProfileResponse> _fetchProfileData() async {
-    // 1. ดึง userString จาก Storage
     final userString = await UserStorageService().readUserData();
-
     if (userString == null) {
-      // ถ้าไม่มีข้อมูล user ก็โยน Error ไปเลย
       throw Exception('User data not found in storage');
     }
-
-    // 2. แปลง String เป็น Map (เหมือนเปิดจดหมาย)
     final Map<String, dynamic> userDataMap = jsonDecode(userString);
-
-    // 3. ดึงค่า email ออกมาจาก Map ด้วย key 'email'
     final String? email = userDataMap['email'];
-
     if (email == null) {
-      // ถ้าในข้อมูลไม่มี key email ก็โยน Error
       throw Exception('Email not found in user data');
     }
-
-    // 4. เรียกใช้ ApiService ด้วย email ที่ดึงมาได้
     return ApiService().getUserProfile(email);
   }
 
+ //ฟังก์ชันสำหรับเปิด Modal เลือก Category
+  void _openCategoryModal(UserProfile userProfile) async {
+     final userCategoryNames = userProfile.interestedCategories;
+
+    // ✨ 2. แปลง "ชื่อ" ที่มี ให้กลายเป็น "ID" ที่ถูกต้อง
+    final currentSelectedIds = allCategories
+        .where((cat) => userCategoryNames.contains(cat.name)) // หา Category ที่ชื่อตรงกัน
+        .map((cat) => cat.id)                               // ดึงเฉพาะ ID ออกมา
+        .toSet();         
+
+
+    final List<String>? newSelectedIds = await showModalBottomSheet<List<String>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return CategorySelectionModal(initialSelectedIds: currentSelectedIds);
+      },
+    );
+
+    if (newSelectedIds != null) {
+      // เมื่อผู้ใช้กด Save และมีการเปลี่ยนแปลง
+      try {
+        // แปลง ID กลับเป็น Name เพื่อส่งให้ API
+    
+        final newCategoryNames = allCategories
+            .where((cat) => newSelectedIds.contains(cat.id))
+            .map((cat) => cat.name)
+            .toList();
+
+        // เรียก ApiService เพื่อส่งข้อมูลไปที่ Backend
+        await ApiService().updateUserCategories(newCategoryNames);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Interests updated!'), backgroundColor: Colors.green),
+        );
+        // Refresh หน้าโปรไฟล์ทั้งหมดเพื่อให้เห็นการเปลี่ยนแปลง
+        setState(() {
+          _profileFuture = _fetchProfileData();
+        });
+
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+      }
+    }
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    // 4. ใช้ FutureBuilder เพื่อสร้าง UI ตามสถานะของ Future
     return FutureBuilder<ProfileResponse>(
       future: _profileFuture,
       builder: (context, snapshot) {
-        // กรณี: กำลังโหลดข้อมูล
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-
-        // กรณี: เกิด Error
         if (snapshot.hasError) {
           return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
         }
-
-        // กรณี: ไม่มีข้อมูล
         if (!snapshot.hasData) {
           return const Center(child: Text('ไม่พบข้อมูลโปรไฟล์'));
         }
 
-        // กรณี: โหลดข้อมูลสำเร็จ!
         final profileResponse = snapshot.data!;
         final userProfile = profileResponse.user;
 
-        // สร้าง UI หลักด้วยข้อมูลจริง
-       return Scaffold(
-        
-        body: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: ProfileHeader(
-                username: userProfile.name,
-                location: userProfile.location ?? 'ยังไม่ได้ระบุ',
-                avatarUrl: userProfile.profilePicture ??
-                    'https://via.placeholder.com/150',
-                bio: userProfile.bio ?? 'ยังไม่ได้ระบุ',               // ✨ ส่ง bio เข้าไป
-                contact: userProfile.contact  ?? 'ยังไม่ได้ระบุ',       // ✨ ส่ง contact เข้าไป
+        //  เตรียมข้อมูล Category เพื่อส่งให้ Header
+        // **สำคัญ:** สมมติว่า UserProfile model ของคุณมี `List<Category> categories`
+        final categoryNames = userProfile.interestedCategories.map((c) => c).toList();
 
-                onEdit: () async {
-                  final updatedProfile =
-                      await showModalBottomSheet<UserProfile>(
-                    context: context,
-                    isScrollControlled: true,
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                    ),
-                    builder: (context) {
-                      return EditProfilePage(currentUserProfile: userProfile);
-                    },
-                  );
+        return Scaffold(
+          body: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(
+                child: ProfileHeader(
+                  username: userProfile.name,
+                  location: userProfile.location ?? 'ยังไม่ได้ระบุ',
+                  avatarUrl: userProfile.profilePicture ?? 'https://via.placeholder.com/150',
+                  bio: userProfile.bio ?? 'ยังไม่ได้ระบุ',
+                  contact: userProfile.contact ?? 'ยังไม่ได้ระบุ',
 
-                  if (updatedProfile != null) {
-                    setState(() {
-                      _profileFuture = _fetchProfileData();
-                    });
-                  }
-                },
+                  // ส่งข้อมูล Category และ Callback ไปให้ ProfileHeader
+                  userCategories: categoryNames,
+                  onEditCategories: () => _openCategoryModal(userProfile),
+
+                  onEdit: () async {
+                    final updatedProfile = await showModalBottomSheet<UserProfile>(
+                      context: context,
+                      isScrollControlled: true,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      builder: (context) {
+                        return EditProfilePage(currentUserProfile: userProfile);
+                      },
+                    );
+
+                    if (updatedProfile != null) {
+                      setState(() {
+                        _profileFuture = _fetchProfileData();
+                      });
+                    }
+                  },
+                ),
               ),
-            ),
-            ProfileGrid(
-              images: const [
-                'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=800',
-                'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
-              ],
-            ),
-          ],
-        ),
-
-        // 👇 ปุ่มกลมๆ ล่างขวา
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const AddItemPage()),
-            );
-          },
-          backgroundColor: Color(0xFF5B7C6E), // เปลี่ยนสีปุ่มได้
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: Colors.white),
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      );
-
-        
-
+              ProfileGrid(
+                images: const [
+                  'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=800',
+                  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
+                ],
+              ),
+            ],
+          ),
+          floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddItemPage()),
+              );
+            },
+            backgroundColor: const Color(0xFF5B7C6E),
+            shape: const CircleBorder(),
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+        );
       },
     );
   }
