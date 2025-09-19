@@ -16,9 +16,19 @@ class CategoryCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surfaceVariant.withOpacity(0.5);
-    final onColor = isSelected ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant;
+    
+  // กำหนดสีเขียวที่เราต้องการ
+  const selectedColor = Color(0xFFDCEDC8); // สีเขียวอ่อนสำหรับพื้นหลัง 
+  const onSelectedColor = Color(0xFF38662A); // สีเขียวเข้มสำหรับตัวอักษร
 
+  //  แก้ไขเงื่อนไขการใช้สี
+  final color = isSelected 
+      ? selectedColor // <--- เปลี่ยนเป็นสีเขียวที่กำหนดเอง
+      : theme.colorScheme.surfaceVariant.withOpacity(0.5);
+      
+  final onColor = isSelected 
+      ? onSelectedColor // <--- เปลี่ยนเป็นสีเขียวที่กำหนดเอง
+      : theme.colorScheme.onSurfaceVariant;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),

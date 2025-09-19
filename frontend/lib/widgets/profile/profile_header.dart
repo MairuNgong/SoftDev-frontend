@@ -9,6 +9,7 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback? onEdit;
   final List<String> userCategories;
   final VoidCallback onEditCategories;
+  
 
   const ProfileHeader({
     super.key,
@@ -22,7 +23,7 @@ class ProfileHeader extends StatelessWidget {
     required this.onEditCategories,
   });
 
-  @override
+@override
 Widget build(BuildContext context) {
   final text = Theme.of(context).textTheme;
   final cs = Theme.of(context).colorScheme;
@@ -54,60 +55,45 @@ Widget build(BuildContext context) {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // --- ส่วนที่ 1: ข้อมูลหลัก (Avatar, Name, Location) ---
+        // --- Section 1: Avatar, Username, Edit Button ---
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Row(
             children: [
               CircleAvatar(
-                radius: 40,
+                radius: 28, // ปรับขนาดให้เล็กลงเล็กน้อย
                 backgroundImage: NetworkImage(avatarUrl),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      username,
-                      style: text.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 4),
-                    if (location.isNotEmpty)
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_outlined, size: 16, color: cs.onSurfaceVariant),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: Text(
-                              location,
-                              style: text.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
+                child: Text(
+                  username,
+                  style: text.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // ปุ่ม Edit Profile หลัก
-              IconButton(
-                onPressed: onEdit,
-                icon: const Icon(Icons.settings_outlined),
-                tooltip: 'Edit Profile',
+              const SizedBox(width: 8),
+              SizedBox(
+                height: 36,
+                child: FilledButton(
+                  onPressed: onEdit,
+                      style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF748873), // สีพื้นหลังสีเขียว
+                    foregroundColor: Colors.white,            // สีตัวอักษรสีขาว
+                    shape: const StadiumBorder(),             // ทำให้ปุ่มเป็นทรงแคปซูล
+                  ),
+                  child: const Text('Edit'),
+                ),
               ),
             ],
           ),
         ),
 
-        // --- ส่วนที่ 2: สถิติ (Stats) ---
+        // --- Section 2: Stats ---
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               buildStatColumn('Items', '12'),
               buildStatColumn('Rating', '4.5'),
@@ -115,35 +101,36 @@ Widget build(BuildContext context) {
             ],
           ),
         ),
-        
-        const Divider(indent: 16, endIndent: 16),
 
-        // --- ส่วนที่ 3: Bio และ Contact ---
+        // --- Section 3: Bio ---
+        if (bio != null && bio!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Text(bio!, style: text.bodyLarge),
+          ),
+
+        // --- Section 4: Location & Contact ---
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             children: [
-              if (bio != null && bio!.isNotEmpty) ...[
-                Text(
-                  bio!,
-                  style: text.bodyMedium,
-                ),
-                const SizedBox(height: 8),
+              if (location.isNotEmpty) ...[
+                Icon(Icons.location_on_outlined, size: 16, color: cs.onSurfaceVariant),
+                const SizedBox(width: 4),
+                Text(location, style: text.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                const SizedBox(width: 16),
               ],
               if (contact != null && contact!.isNotEmpty)
                 InkWell(
                   onTap: () { /* TODO: Launch URL */ },
+                  borderRadius: BorderRadius.circular(4),
                   child: Row(
                     children: [
                       Icon(Icons.link, size: 16, color: cs.primary),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 4),
                       Text(
                         contact!,
-                        style: text.bodyMedium?.copyWith(
-                          color: cs.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: text.bodyMedium?.copyWith(color: cs.primary, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -151,12 +138,12 @@ Widget build(BuildContext context) {
             ],
           ),
         ),
-
-        const Divider(indent: 16, endIndent: 16),
         
-        // --- ส่วนที่ 4: Interests ---
+        const Divider(indent: 16, endIndent: 16, height: 24),
+
+        // --- Section 5: Interests ---
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -167,8 +154,8 @@ Widget build(BuildContext context) {
                   IconButton(
                     onPressed: onEditCategories,
                     icon: const Icon(Icons.edit_outlined, size: 20),
-                    tooltip: 'Edit Interests',
                     visualDensity: VisualDensity.compact,
+                    tooltip: 'Edit Interests',
                   ),
                 ],
               ),
@@ -180,8 +167,6 @@ Widget build(BuildContext context) {
                   children: userCategories.map((name) {
                     return Chip(
                       label: Text(name),
-                      labelStyle: text.labelSmall,
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
                       visualDensity: VisualDensity.compact,
                     );
                   }).toList(),
