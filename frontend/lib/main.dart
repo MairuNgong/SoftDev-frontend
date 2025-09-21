@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late AuthService authService;
   bool _isLoggedIn = false;
-  // ✨ 2. เพิ่ม State สำหรับสถานะการโหลด
+  // เพิ่ม State สำหรับสถานะการโหลด
   bool _isLoading = true;
   
   @override
