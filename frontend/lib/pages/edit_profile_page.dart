@@ -98,7 +98,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
     
     // ✨ 5. กำหนดสไตล์ปุ่มสีเขียว
     final buttonStyle = FilledButton.styleFrom(

@@ -1,6 +1,7 @@
 // file: services/api_service.dart
 
 import 'package:dio/dio.dart';
+import 'package:frontend/models/transaction_model.dart';
 import 'package:frontend/models/user_profile_model.dart';
 import '../models/login/storage_service.dart'; // <-- import storage service
 import 'dart:io'; // <-- import สำหรับใช้ File
@@ -111,6 +112,31 @@ class ApiService {
       return items;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "For You" items: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+
+
+
+   /// ดึงข้อมูลประวัติการแลกเปลี่ยนทั้งหมด
+  Future<List<Transaction>> getTransactions() async {
+    try {
+      final response = await _dio.get('/transactions');
+      
+      // 1. ดึง List ที่อยู่ใน key 'transactions'
+      final List<dynamic> transactionListJson = response.data['transactions'];
+
+      // 2. ใช้ .map เพื่อแปลงแต่ละ object ใน list ให้เป็น Transaction object
+      final List<Transaction> transactions = transactionListJson
+          .map((json) => Transaction.fromJson(json))
+          .toList();
+          
+      return transactions;
+
+    } on DioException catch (e) {
+      throw Exception('Failed to fetch transactions: ${e.message}');
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }
