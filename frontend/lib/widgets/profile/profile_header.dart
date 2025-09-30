@@ -61,7 +61,7 @@ Widget build(BuildContext context) {
           child: Row(
             children: [
               CircleAvatar(
-                radius: 28, // ปรับขนาดให้เล็กลงเล็กน้อย
+                radius: 40, // ปรับขนาดให้เล็กลงเล็กน้อย
                 backgroundImage: NetworkImage(avatarUrl),
               ),
               const SizedBox(width: 16),

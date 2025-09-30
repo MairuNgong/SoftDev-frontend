@@ -92,30 +92,37 @@ class _ProfilePageState extends State<ProfilePage> {
 
 
   @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<ProfileResponse>(
-      future: _profileFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}'));
-        }
-        if (!snapshot.hasData) {
-          return const Center(child: Text('ไม่พบข้อมูลโปรไฟล์'));
-        }
+Widget build(BuildContext context) {
+  return FutureBuilder<ProfileResponse>(
+    future: _profileFuture,
+    builder: (context, snapshot) {
+      // --- ส่วนจัดการสถานะการโหลด (เหมือนเดิม) ---
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      }
+      if (snapshot.hasError) {
+        return Scaffold(body: Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}')));
+      }
+      if (!snapshot.hasData) {
+        return const Scaffold(body: Center(child: Text('ไม่พบข้อมูลโปรไฟล์')));
+      }
 
-        final profileResponse = snapshot.data!;
-        final userProfile = profileResponse.user;
+      // --- ส่วนเตรียมข้อมูล (เหมือนเดิม) ---
+      final profileResponse = snapshot.data!;
+      final userProfile = profileResponse.user;
+      final categoryNames = userProfile.interestedCategories;
+      
+      final availableImages = profileResponse.availableItems.expand((item) => item.itemPictures).toList();
+      final matchingImages = profileResponse.matchingItems.expand((item) => item.itemPictures).toList();
+      final completeImages = profileResponse.completeItems.expand((item) => item.itemPictures).toList();
 
-        //  เตรียมข้อมูล Category เพื่อส่งให้ Header
-        // **สำคัญ:** สมมติว่า UserProfile model ของคุณมี `List<Category> categories`
-        final categoryNames = userProfile.interestedCategories.map((c) => c).toList();
-
-        return Scaffold(
+      // --- ✨ โครงสร้าง UI ใหม่ที่เพิ่ม TabBar ---
+      return DefaultTabController(
+        length: 3, // จำนวนแท็บ
+        child: Scaffold(
           body: CustomScrollView(
             slivers: [
+              // 1. ส่วน Header (เหมือนเดิมทุกอย่าง)
               SliverToBoxAdapter(
                 child: ProfileHeader(
                   username: userProfile.name,
@@ -123,11 +130,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   avatarUrl: userProfile.profilePicture ?? 'https://via.placeholder.com/150',
                   bio: userProfile.bio ?? 'ยังไม่ได้ระบุ',
                   contact: userProfile.contact ?? 'ยังไม่ได้ระบุ',
-
-                  // ส่งข้อมูล Category และ Callback ไปให้ ProfileHeader
                   userCategories: categoryNames,
                   onEditCategories: () => _openCategoryModal(userProfile),
-
                   onEdit: () async {
                     final updatedProfile = await showModalBottomSheet<UserProfile>(
                       context: context,
@@ -139,7 +143,6 @@ class _ProfilePageState extends State<ProfilePage> {
                         return EditProfilePage(currentUserProfile: userProfile);
                       },
                     );
-
                     if (updatedProfile != null) {
                       setState(() {
                         _profileFuture = _fetchProfileData();
@@ -148,14 +151,38 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
               ),
-              ProfileGrid(
-                images: const [
-                  'https://images.unsplash.com/photo-1520975916090-3105956dac38?w=800',
-                  'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?w=800',
-                ],
+
+              // 2. ส่วน TabBar ที่ปักหมุดได้
+              SliverPersistentHeader(
+                delegate: _SliverAppBarDelegate(
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'Available'),
+                      Tab(text: 'Matching'),
+                      Tab(text: 'Complete'),
+                    ],
+                    labelColor: Colors.black,
+                    unselectedLabelColor: Colors.grey,
+                    indicatorColor: Colors.black,
+                  ),
+                ),
+                pinned: true,
+              ),
+
+              // 3. ส่วนเนื้อหาของแต่ละแท็บ
+              SliverFillRemaining(
+                child: TabBarView(
+                  children: [
+                    ProfileGrid(images: availableImages),
+                    ProfileGrid(images: matchingImages),
+                    ProfileGrid(images: completeImages),
+                  ],
+                ),
               ),
             ],
           ),
+          
+          // ส่วนของ FloatingActionButton (เหมือนเดิม)
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               Navigator.push(
@@ -168,8 +195,37 @@ class _ProfilePageState extends State<ProfilePage> {
             child: const Icon(Icons.add, color: Colors.white),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-        );
-      },
+        ),
+      );
+    },
+  );
+}
+
+}
+
+
+
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
+
+  final TabBar _tabBar;
+
+  @override
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: _tabBar,
     );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }
