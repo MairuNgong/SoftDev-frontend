@@ -1,22 +1,64 @@
-// file: models/user_profile_model.dart
+class Item {
+  final int id;
+  final String name;
+  final String priceRange;
+  final String description;
+  final String ownerEmail;
+  final List<String> itemCategories;
+  final List<String> itemPictures;
 
-// Model หลักสำหรับ Response ทั้งหมด
+  Item({
+    required this.id,
+    required this.name,
+    required this.priceRange,
+    required this.description,
+    required this.ownerEmail,
+    required this.itemCategories,
+    required this.itemPictures,
+  });
+
+  factory Item.fromJson(Map<String, dynamic> json) {
+    return Item(
+      id: json['id'],
+      name: json['name'],
+      priceRange: json['priceRange'],
+      description: json['description'] ?? '', // ป้องกันค่า null
+      ownerEmail: json['ownerEmail'],
+      itemCategories: List<String>.from(json['ItemCategories'] ?? []),
+      itemPictures: List<String>.from(json['ItemPictures'] ?? []),
+    );
+  }
+}
+
+// ✨ อัปเดต ProfileResponse Model
 class ProfileResponse {
   final UserProfile user;
-  final List<dynamic> items; // ตอนนี้ items เป็น array ว่างๆ, หากมีข้อมูลค่อยสร้าง Model เพิ่ม
+  final List<Item> availableItems;
+  final List<Item> matchingItems;
+  final List<Item> completeItems;
   final bool owner;
 
   ProfileResponse({
     required this.user,
-    required this.items,
+    required this.availableItems,
+    required this.matchingItems,
+    required this.completeItems,
     required this.owner,
   });
 
   factory ProfileResponse.fromJson(Map<String, dynamic> json) {
+    // ฟังก์ชันช่วยแปลง List ของ JSON ไปเป็น List ของ Item Object
+    List<Item> parseItems(String key) {
+      if (json[key] == null) return [];
+      var list = json[key] as List;
+      return list.map((i) => Item.fromJson(i)).toList();
+    }
+
     return ProfileResponse(
-      // ให้ UserProfile.fromJson จัดการ object 'user' ที่ซ้อนอยู่ข้างใน
       user: UserProfile.fromJson(json['user']),
-      items: List<dynamic>.from(json['items']),
+      availableItems: parseItems('Available'),
+      matchingItems: parseItems('Matching'),
+      completeItems: parseItems('Complete'),
       owner: json['owner'],
     );
   }
