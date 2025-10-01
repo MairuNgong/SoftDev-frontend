@@ -6,11 +6,14 @@ class SwipeCard extends StatefulWidget {
   final List<String> items;
   final VoidCallback onStackFinishedCallback;
   final void Function(int remainingCount) onItemChangedCallback;
+  final void Function(String itemJson) onLikeAction;
+
   const SwipeCard({
     super.key, 
     required this.items,
     required this.onStackFinishedCallback,
     required this.onItemChangedCallback,
+    required this.onLikeAction,
   });
 
   @override
@@ -31,7 +34,7 @@ class _SwipeCardState extends State<SwipeCard> {
   SwipeItem _createSwipeItem(String content) {
     return SwipeItem(
       content: content,
-      likeAction: () { print("Liked $content"); },
+      likeAction: () { widget.onLikeAction(content); },
       nopeAction: () { print("Nope $content"); },
     );
   }

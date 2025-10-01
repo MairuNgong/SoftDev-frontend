@@ -1,6 +1,9 @@
 // file: pages/home_page.dart
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:frontend/pages/offer_creation_page.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/widgets/home/swipe_card.dart';
 import '../models/login/storage_service.dart';
@@ -21,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   bool _isFetchingNextBatch = false;
   String _currentOption = 'FOR_YOU';
   List<String> forYouItems = [];
-  List<String> requestItems = ["Alice", "Bob", "Charlie", "Diana", "Ethan"];
+  List<String> requestItems = ["Alice", "Squid", "Spiderman"];
   
   @override
   void initState() {
@@ -77,11 +80,9 @@ class _HomePageState extends State<HomePage> {
 
     try {
         final items = await api.getForYouItems(_user!.email); 
-        
         if (mounted) {
             setState(() {
             if (!isRefetch || forYouItems.isEmpty) {
-                // Initial load: Replace the empty list
                 forYouItems = items;
             } else {
                 forYouItems.addAll(items); 
@@ -94,7 +95,6 @@ class _HomePageState extends State<HomePage> {
                 SnackBar(content: Text('Error fetching "For You" items: $e')));
         }
     } finally {
-        // 3. Keep: Reset flag in the finally block
         if (mounted) {
             setState(() {
                 _isFetchingNextBatch = false; 
@@ -104,20 +104,26 @@ class _HomePageState extends State<HomePage> {
 }
 
   Future<void> _fetchRequest({bool isRefetch = false}) async {
-    if (isRefetch && _user == null) return;
-    final api = ApiService();
+    if (_user == null || (isRefetch && _isFetchingNextBatch)) return; 
+    final api = _apiService; 
+    
+    if (isRefetch && mounted) {
+      setState(() {
+        _isFetchingNextBatch = true;
+      });
+    }
+
     try {
-      if (isRefetch && mounted) {
-        setState(() {
-          requestItems = [];
-        });
-      }
-      final items = await api.getRequestItems(_user!.email);
+      final items = await api.getRequestItems(_user!.email); 
       if (mounted) {
-        setState(() {
-          requestItems = items;
-        });
-      }
+          setState(() {
+            if (!isRefetch || requestItems.isEmpty) {
+                requestItems = items;
+            } else {
+                requestItems.addAll(items); 
+            }
+          });
+        }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,6 +137,49 @@ class _HomePageState extends State<HomePage> {
     if (remainingCount <= threshold && !_isFetchingNextBatch) {
       _fetchForYou(isRefetch: true); 
     }
+  }
+
+  void _handleLikeOffer(String likedItemJson) async {
+    final likedItemData = jsonDecode(likedItemJson);
+    final String likedItemId = likedItemData['id']?.toString() ?? 'unknown';
+    final selectedOfferItem = await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:(context) => OfferCreationPage(
+          targetItemId: likedItemId,
+          targetItemName: likedItemData['name'] ?? 'Target Item',
+        ),
+      )
+    );
+
+    if(selectedOfferItem != null && selectedOfferItem is Map<String, dynamic>){
+      final myOfferItemId = selectedOfferItem['id'];
+      try {
+        await _apiService.createOffer(
+          targetItemId: likedItemId,
+          offeredItemId: myOfferItemId,
+          userEmail: _user!.email,
+        );
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Offer successfully created!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to create offer: $e')),
+          );
+        }
+      }
+    } else {
+      print('Offer creation cancelled or no item selected.');
+    }
+  }
+
+  void _handleAcceptOffer(String likedItemJson){
+    final likedItemData = jsonDecode(likedItemJson);
+    final String likedItemId = likedItemData['id']?.toString() ?? 'unknown';
   }
 
   @override
@@ -180,16 +229,18 @@ class _HomePageState extends State<HomePage> {
                   ),
                   Expanded(
                     child: _currentOption == 'FOR_YOU'
-                          ? SwipeCard(
+                          ? SwipeCard(  // For You
                             items: forYouItems,
                             key: ValueKey(forYouItems.length), 
-                            onStackFinishedCallback: () => _fetchForYou(isRefetch: true),  // For You
-                            onItemChangedCallback: _checkAndFetchForYou)
-                          : SwipeCard(
+                            onStackFinishedCallback: () => _fetchForYou(isRefetch: true),
+                            onItemChangedCallback: _checkAndFetchForYou,
+                            onLikeAction: _handleLikeOffer,)
+                          : SwipeCard(  // Request
                             items: requestItems,
                             key: ValueKey(requestItems.length),
                             onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
-                            onItemChangedCallback: _checkAndFetchForYou)
+                            onItemChangedCallback: _checkAndFetchForYou,
+                            onLikeAction: _handleAcceptOffer,)
                       ), // Request
                   const SizedBox(height: 20),
                 ],

@@ -71,17 +71,11 @@ class ApiService {
         formData.files.add(
           MapEntry(
             'ProfilePicture',
-            await MultipartFile.fromFile(
-              imageFile.path,
-              filename: fileName,
-            ),
+            await MultipartFile.fromFile(imageFile.path, filename: fileName),
           ),
         );
       }
-      final response = await _dio.put(
-        '/users',
-        data: formData,
-      );
+      final response = await _dio.put('/users', data: formData);
       return UserProfile.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to update profile: ${e.message}');
@@ -94,12 +88,11 @@ class ApiService {
   Future<void> updateUserCategories(List<String> categoryNames) async {
     try {
       final body = {'categoryNames': categoryNames};
-      await _dio.put(
-        '/users',
-        data: body,
-      );
+      await _dio.put('/users', data: body);
     } on DioException catch (e) {
-      throw Exception('Failed to update categories: ${e.response?.data['message'] ?? e.message}');
+      throw Exception(
+        'Failed to update categories: ${e.response?.data['message'] ?? e.message}',
+      );
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }
@@ -107,7 +100,10 @@ class ApiService {
 
   Future<List<String>> getForYouItems(String email) async {
     try {
-      final response = await _dio.get('/items/available_items/', queryParameters: {'email': email});
+      final response = await _dio.get(
+        '/items/available_items/',
+        queryParameters: {'email': email},
+      );
       final List<dynamic> jsonList = response.data['items'];
       List<String> items = jsonList.map((item) => jsonEncode(item)).toList();
       return items;
@@ -118,14 +114,11 @@ class ApiService {
     }
   }
 
-
-
-
-   /// ดึงข้อมูลประวัติการแลกเปลี่ยนทั้งหมด
+  /// ดึงข้อมูลประวัติการแลกเปลี่ยนทั้งหมด
   Future<List<Transaction>> getTransactions() async {
     try {
       final response = await _dio.get('/transactions');
-      
+
       // 1. ดึง List ที่อยู่ใน key 'transactions'
       final List<dynamic> transactionListJson = response.data['transactions'];
 
@@ -133,9 +126,8 @@ class ApiService {
       final List<Transaction> transactions = transactionListJson
           .map((json) => Transaction.fromJson(json))
           .toList();
-          
-      return transactions;
 
+      return transactions;
     } on DioException catch (e) {
       throw Exception('Failed to fetch transactions: ${e.message}');
     } catch (e) {
@@ -156,4 +148,30 @@ class ApiService {
     }
   }
 
-} 
+  Future<void> createOffer({
+    required String targetItemId,
+    required String offeredItemId,
+    required String userEmail,
+  }) async {
+    final Map<String, dynamic> requestBody = {
+      'targetItemId': targetItemId,
+      'offeredItemId': offeredItemId,
+      'userEmail': userEmail,
+    };
+
+    try {
+      final response = await _dio.post(
+        '/transactions/offer',
+        data: requestBody,
+      );
+
+      if (response.statusCode != 201 && response.statusCode != 200) {
+        throw Exception(
+          'Failed to create offer. Server responded with status: ${response.statusCode}',
+        );
+      }
+    } catch (e) {
+      throw Exception('Failed to send offer request: $e');
+    }
+  }
+}
