@@ -1,5 +1,5 @@
 // file: services/api_service.dart
-
+import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:frontend/models/user_profile_model.dart';
 import '../models/login/storage_service.dart'; // <-- import storage service
@@ -116,8 +116,9 @@ class ApiService {
 
   Future<List<String>> getForYouItems(String email) async {
     try {
-      final response = await _dio.get('/un_watched_item/$email');
-      List<String> items = List<String>.from(response.data['items']);
+      final response = await _dio.get('/items/available_items/', queryParameters: {'email': email});
+      final List<dynamic> jsonList = response.data['items'];
+      List<String> items = jsonList.map((item) => jsonEncode(item)).toList();
       return items;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "For You" items: ${e.message}');
@@ -128,7 +129,8 @@ class ApiService {
   Future<List<String>> getRequestItems(String email) async {
     try {
       final response = await _dio.get('/...');
-      List<String> items = List<String>.from(response.data['items']);
+      final List<dynamic> jsonList = response.data['items'];
+      List<String> items = jsonList.map((item) => item.toString()).toList();
       return items;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "For You" items: ${e.message}');

@@ -3,8 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/widgets/home/swipe_card.dart';
-import '../models/login/storage_service.dart'; // <-- ปรับ path ให้ถูกต้อง
-import '../models/user_model.dart'; // <-- ปรับ path ให้ถูกต้อง
+import '../models/login/storage_service.dart';
+import '../models/user_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,20 +15,19 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final UserStorageService _storageService = UserStorageService();
+  final ApiService _apiService = ApiService();
   User? _user;
   bool _isLoading = true;
+  bool _isFetchingNextBatch = false;
   String _currentOption = 'FOR_YOU';
-  // Data from backend
   List<String> forYouItems = [];
   List<String> requestItems = ["Alice", "Bob", "Charlie", "Diana", "Ethan"];
-
+  
   @override
   void initState() {
     super.initState();
     // เรียกฟังก์ชันเพื่อโหลดข้อมูล User ทันทีที่หน้านี้ถูกสร้าง
     _loadUserData();
-    _fetchForYou();
-    _fetchRequest();
   }
 
   Future<void> _loadUserData() async {
@@ -46,6 +45,10 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           _user = user;
         });
+        await Future.wait([
+          _fetchForYou(),
+          _fetchRequest(),
+        ]);
       }
     } catch (e) {
       // จัดการ Error หากดึงข้อมูลไม่สำเร็จ
@@ -62,35 +65,73 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _fetchForYou() async {
-    final api = ApiService();
-    try {
-      final items = await api.getForYouItems(_user!.email);
+  Future<void> _fetchForYou({bool isRefetch = false}) async {
+    if (_user == null || (isRefetch && _isFetchingNextBatch)) return; 
+    final api = _apiService; 
+    
+    if (isRefetch && mounted) {
       setState(() {
-        forYouItems = items;
+        _isFetchingNextBatch = true;
       });
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error fetching For You items: $e')));
-      }
     }
-  }
-  Future<void> _fetchRequest() async {
+
+    try {
+        final items = await api.getForYouItems(_user!.email); 
+        
+        if (mounted) {
+            setState(() {
+            if (!isRefetch || forYouItems.isEmpty) {
+                // Initial load: Replace the empty list
+                forYouItems = items;
+            } else {
+                forYouItems.addAll(items); 
+            }
+          });
+        }
+    } catch (e) {
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error fetching "For You" items: $e')));
+        }
+    } finally {
+        // 3. Keep: Reset flag in the finally block
+        if (mounted) {
+            setState(() {
+                _isFetchingNextBatch = false; 
+            });
+        }
+    }
+}
+
+  Future<void> _fetchRequest({bool isRefetch = false}) async {
+    if (isRefetch && _user == null) return;
     final api = ApiService();
     try {
+      if (isRefetch && mounted) {
+        setState(() {
+          requestItems = [];
+        });
+      }
       final items = await api.getRequestItems(_user!.email);
-      setState(() {
-        forYouItems = items;
-      });
+      if (mounted) {
+        setState(() {
+          requestItems = items;
+        });
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error fetching For You items: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error fetching "Request" items: $e')));
       }
     }
   }
 
+  void _checkAndFetchForYou(int remainingCount) {
+    const threshold = 9;
+    if (remainingCount <= threshold && !_isFetchingNextBatch) {
+      _fetchForYou(isRefetch: true); 
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -137,14 +178,20 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ],
                   ),
-                  (_currentOption == 'FOR_YOU')
-                      ? SwipeCard(items: forYouItems) // For You
-                      : SwipeCard(items: requestItems), // Request
+                  Expanded(
+                    child: _currentOption == 'FOR_YOU'
+                          ? SwipeCard(
+                            items: forYouItems,
+                            key: ValueKey(forYouItems.length), 
+                            onStackFinishedCallback: () => _fetchForYou(isRefetch: true),  // For You
+                            onItemChangedCallback: _checkAndFetchForYou)
+                          : SwipeCard(
+                            items: requestItems,
+                            key: ValueKey(requestItems.length),
+                            onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
+                            onItemChangedCallback: _checkAndFetchForYou)
+                      ), // Request
                   const SizedBox(height: 20),
-                  // const SizedBox(height: 20),
-                  // Text("Name: ${_user!.name}"),
-                  // const SizedBox(height: 8),
-                  // Text("Email: ${_user!.email}"),
                 ],
               )
             : const Text("User data not found."), // หากไม่พบข้อมูล
