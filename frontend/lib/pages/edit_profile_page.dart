@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:frontend/models/user_profile_model.dart'; // <-- import model
-import 'package:frontend/services/api_service.dart';     // <-- import service
+
+import 'package:frontend/models/user_profile_model.dart';
+import 'package:frontend/services/api_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
-  // ✨ 1. รับข้อมูลโปรไฟล์ปัจจุบันเข้ามาทาง Constructor
   final UserProfile currentUserProfile;
 
   const EditProfilePage({super.key, required this.currentUserProfile});
@@ -16,22 +16,24 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  
-  // Controller จะถูกกำหนดค่าใน initState
+
   late TextEditingController _nameController;
   late TextEditingController _locationController;
-  late TextEditingController _bioController; // เพิ่ม Bio controller
+  late TextEditingController _bioController;
+  // ✨ 1. เพิ่ม Controller สำหรับ Contact
+  late TextEditingController _contactController;
 
-  File? _selectedImageFile; // เปลี่ยนจาก path มาเป็น File เพื่อให้ใช้งานง่ายขึ้น
-  bool _isLoading = false; // ✨ 2. เพิ่ม State สำหรับการโหลด
+  File? _selectedImageFile;
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    // ✨ 3. ใช้ข้อมูลที่รับมาเป็นค่าเริ่มต้นของ Controller
     _nameController = TextEditingController(text: widget.currentUserProfile.name);
     _locationController = TextEditingController(text: widget.currentUserProfile.location);
     _bioController = TextEditingController(text: widget.currentUserProfile.bio);
+    // ✨ 2. กำหนดค่าเริ่มต้นให้กับ Contact Controller
+    _contactController = TextEditingController(text: widget.currentUserProfile.contact);
   }
 
   Future<void> _pickImage() async {
@@ -44,38 +46,33 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   ImageProvider _avatarProvider() {
-    // ถ้ามีการเลือกรูปใหม่
     if (_selectedImageFile != null) {
       return FileImage(_selectedImageFile!);
     }
-    // ถ้าไม่มีรูปใหม่ แต่มีรูปเก่าจากโปรไฟล์
     if (widget.currentUserProfile.profilePicture != null) {
       return NetworkImage(widget.currentUserProfile.profilePicture!);
     }
-    // ไม่มีรูปเลย
-    return const AssetImage("assets/placeholder.png"); // แนะนำให้มีรูป placeholder
+    return const AssetImage("assets/placeholder.png");
   }
 
-  // ✨ 4. แก้ไขฟังก์ชัน _save() ให้เรียกใช้ ApiService
   Future<void> _save() async {
     if (_formKey.currentState!.validate() && !_isLoading) {
       setState(() => _isLoading = true);
 
       try {
-        // รวบรวมข้อมูลจาก Form
+        // ✨ 3. เพิ่ม Contact เข้าไปในข้อมูลที่จะส่ง
         final userData = {
           'name': _nameController.text,
           'Location': _locationController.text,
           'Bio': _bioController.text,
+          'Contact': _contactController.text,
         };
 
-        // เรียกใช้ ApiService
         final updatedProfile = await ApiService().updateUserProfile(
           userData: userData,
           imageFile: _selectedImageFile,
         );
 
-        // แสดงผลลัพธ์และกลับไปหน้าก่อนหน้า
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -83,7 +80,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
               backgroundColor: Colors.green,
             ),
           );
-          // ส่งข้อมูลที่อัปเดตแล้วกลับไปให้ ProfilePage (เผื่ออยาก refresh)
           Navigator.pop(context, updatedProfile);
         }
       } catch (e) {
@@ -102,78 +98,100 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    
+    // ✨ 5. กำหนดสไตล์ปุ่มสีเขียว
+    final buttonStyle = FilledButton.styleFrom(
+      backgroundColor: const Color(0xFF748873), // สีเขียวที่คุณใช้
+      foregroundColor: Colors.white,
+    );
+    
+    final outlinedButtonStyle = OutlinedButton.styleFrom(
+        side: const BorderSide(color: Color(0xFF748873)),
+        foregroundColor: const Color(0xFF748873),
+    );
+
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Edit Profile")),
-      // ✨ 5. ปรับปรุง UI ให้รองรับสถานะ loading
-      body: _isLoading 
-        ? const Center(child: CircularProgressIndicator())
-        : ListView(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-            children: [
-              // Avatar + ปุ่มแก้ไข
-              Center(
-                child: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    CircleAvatar(radius: 48, backgroundImage: _avatarProvider()),
-                    InkWell(
-                      onTap: _pickImage,
-                      borderRadius: BorderRadius.circular(24),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: cs.primary,
-                          shape: BoxShape.circle,
+      appBar: AppBar(title: const Text("Edit Profile"),
+        backgroundColor: const Color(0xFF748873),
+        foregroundColor: Colors.white,
+        automaticallyImplyLeading: false
+      ),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
+              children: [
+                Center(
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(radius: 48, backgroundImage: _avatarProvider()),
+                      InkWell(
+                        
+                        onTap: _pickImage,
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Color( 0xFF748873),
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(8),
+                          child: const Icon(Icons.edit, size: 18, color: Colors.white),
                         ),
-                        padding: const EdgeInsets.all(8),
-                        child: const Icon(Icons.edit, size: 18, color: Colors.white),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              // ฟอร์ม
-              Form(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _nameController,
-                      decoration: const InputDecoration(labelText: "Name"),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? "กรุณากรอกชื่อ" : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _locationController,
-                      decoration: const InputDecoration(labelText: "Location"),
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _bioController,
-                      decoration: const InputDecoration(labelText: "Bio"),
-                      maxLines: 3,
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(labelText: "Name"),
+                        validator: (v) => (v == null || v.trim().isEmpty) ? "กรุณากรอกชื่อ" : null,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _locationController,
+                        decoration: const InputDecoration(labelText: "Location"),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _bioController,
+                        decoration: const InputDecoration(labelText: "Bio"),
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      // ✨ 4. เพิ่ม TextFormField สำหรับ Contact
+                      TextFormField(
+                        controller: _contactController,
+                        decoration: const InputDecoration(
+                          labelText: "Contact",
+                          hintText: "e.g., Line ID, Facebook, etc."
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-
-              FilledButton.icon(
-                onPressed: _isLoading ? null : _save, // ปิดปุ่มตอนโหลด
-                icon: const Icon(Icons.check),
-                label: const Text("บันทึก"),
-              ),
-              const SizedBox(height: 8),
-              OutlinedButton.icon(
-                onPressed: _isLoading ? null : () => Navigator.pop(context),
-                icon: const Icon(Icons.close),
-                label: const Text("ยกเลิก"),
-              ),
-            ],
-          ),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: _isLoading ? null : _save,
+                  icon: const Icon(Icons.check),
+                  label: const Text("บันทึก"),
+                  style: buttonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
+                ),
+                const SizedBox(height: 8),
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                  label: const Text("ยกเลิก"),
+                  style: outlinedButtonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
+                ),
+              ],
+            ),
     );
   }
 }

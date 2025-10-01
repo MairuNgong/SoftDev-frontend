@@ -21,7 +21,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   late AuthService authService;
   bool _isLoggedIn = false;
-  // ✨ 2. เพิ่ม State สำหรับสถานะการโหลด
+  // เพิ่ม State สำหรับสถานะการโหลด
   bool _isLoading = true;
   
   @override
@@ -64,7 +64,9 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
+      theme: ThemeData(useMaterial3: true
+      ),
+      
       // ✨ 5. ใช้ State ในการเลือกหน้าจอที่จะแสดงผล
       home: _isLoading
           // ถ้ากำลังโหลด: แสดงหน้าจอรอ
