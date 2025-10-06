@@ -8,7 +8,7 @@ import 'package:frontend/widgets/profile/profile_grid.dart';
 import 'package:frontend/widgets/profile/profile_header.dart';
 import 'dart:convert';
 import 'package:frontend/widgets/category_selection_modal.dart';
-import 'package:frontend/widgets/category_selection_modal.dart' show allCategories, CategorySelectionModal;
+import 'package:frontend/widgets/category_selection_modal.dart' show allCategories, CategorySelectionPage;
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -50,13 +50,11 @@ class _ProfilePageState extends State<ProfilePage> {
         .toSet();         
 
 
-    final List<String>? newSelectedIds = await showModalBottomSheet<List<String>>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return CategorySelectionModal(initialSelectedIds: currentSelectedIds);
-      },
+    final List<String>? newSelectedIds = await Navigator.push<List<String>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CategorySelectionPage(initialSelectedIds: currentSelectedIds),
+      ),
     );
 
     if (newSelectedIds != null) {
@@ -122,7 +120,7 @@ Widget build(BuildContext context) {
         child: Scaffold(
           body: CustomScrollView(
             slivers: [
-              // 1. ส่วน Header (เหมือนเดิมทุกอย่าง)
+              // 1. ส่วน Header 
               SliverToBoxAdapter(
                 child: ProfileHeader(
                   username: userProfile.name,
