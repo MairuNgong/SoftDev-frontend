@@ -80,14 +80,27 @@ class _SwipeCardState extends State<SwipeCard> {
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage('assets/login/login_bg_1.jpg'),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
+                        child: (itemData['ItemPictures'] != null &&
+                                itemData['ItemPictures'] is List &&
+                                itemData['ItemPictures'].isNotEmpty)
+                            ? Container(
+                                decoration: BoxDecoration(
+                                  image: DecorationImage(
+                                    image: NetworkImage(itemData['ItemPictures'][0]),
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: Colors.grey[200],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 80,
+                                    color: Color(0xFF5B7C6E),
+                                  ),
+                                ),
+                              ),
                       ),
 
                       Positioned.fill(
