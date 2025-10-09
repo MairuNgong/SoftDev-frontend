@@ -151,7 +151,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(labelText: "Name"),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? "กรุณากรอกชื่อ" : null,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? "Please enter your name" : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -180,14 +180,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 FilledButton.icon(
                   onPressed: _isLoading ? null : _save,
                   icon: const Icon(Icons.check),
-                  label: const Text("บันทึก"),
+                  label: const Text("Save"),
                   style: buttonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: _isLoading ? null : () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
-                  label: const Text("ยกเลิก"),
+                  label: const Text("Cancel"),
                   style: outlinedButtonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
                 ),
               ],

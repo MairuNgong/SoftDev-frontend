@@ -5,7 +5,9 @@ class Item {
   final int id;
   final String name;
   final String priceRange;
+  final String? description;      // ADDED: เพิ่ม description (อาจเป็น null)
   final String ownerEmail;
+  final double? ownerRatingScore; // ADDED: เพิ่ม ownerRatingScore (อาจเป็น null)
   final List<String> itemCategories;
   final List<String> itemPictures;
 
@@ -13,7 +15,9 @@ class Item {
     required this.id,
     required this.name,
     required this.priceRange,
+    this.description,             // ADDED
     required this.ownerEmail,
+    this.ownerRatingScore,        // ADDED
     required this.itemCategories,
     required this.itemPictures,
   });
@@ -23,7 +27,10 @@ class Item {
       id: json['id'],
       name: json['name'],
       priceRange: json['priceRange'],
+      description: json['description'], // ADDED
       ownerEmail: json['ownerEmail'],
+      // ADDED: แปลงเป็น double และป้องกันค่า null
+      ownerRatingScore: (json['ownerRatingScore'] as num?)?.toDouble(),
       itemCategories: List<String>.from(json['ItemCategories'] ?? []),
       itemPictures: List<String>.from(json['ItemPictures'] ?? []),
     );
@@ -31,6 +38,7 @@ class Item {
 }
 
 // Model ตัวที่ 2 (ตรงกลาง): สำหรับข้อมูล TradeItem ที่เชื่อม Transaction กับ Item
+// ไม่มีการเปลี่ยนแปลง
 class TradeItem {
   final Item item;
 
@@ -49,6 +57,8 @@ class Transaction {
   final String offerEmail;
   final String accepterEmail;
   final String status;
+  final double? offererRating;  // ADDED: เพิ่ม offererRating (อาจเป็น null)
+  final double? accepterRating; // ADDED: เพิ่ม accepterRating (อาจเป็น null)
   final DateTime updatedAt;
   final List<TradeItem> tradeItems;
 
@@ -57,13 +67,15 @@ class Transaction {
     required this.offerEmail,
     required this.accepterEmail,
     required this.status,
+    this.offererRating,           // ADDED
+    this.accepterRating,          // ADDED
     required this.updatedAt,
     required this.tradeItems,
   });
 
   factory Transaction.fromJson(Map<String, dynamic> json) {
-    // แปลง List ของ TradeItems ที่ซ้อนอยู่ข้างใน
-    var tradeItemsList = json['TradeItems'] as List;
+    // ปรับปรุงให้รองรับกรณี TradeItems เป็น null
+    var tradeItemsList = (json['TradeItems'] as List?) ?? [];
     List<TradeItem> parsedTradeItems = tradeItemsList.map((i) => TradeItem.fromJson(i)).toList();
 
     return Transaction(
@@ -71,6 +83,9 @@ class Transaction {
       offerEmail: json['offerEmail'],
       accepterEmail: json['accepterEmail'],
       status: json['status'],
+      // ADDED: แปลงเป็น double และป้องกันค่า null
+      offererRating: (json['offererRating'] as num?)?.toDouble(),
+      accepterRating: (json['accepterRating'] as num?)?.toDouble(),
       updatedAt: DateTime.parse(json['updatedAt']),
       tradeItems: parsedTradeItems,
     );

@@ -30,7 +30,7 @@ class _SearchPageState extends State<SearchPage> {
     final keyword = _searchController.text.trim();
     if (keyword.isEmpty && _selectedCategories.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("กรุณากรอกคำค้นหาหรือเลือกหมวดหมู่")),
+        const SnackBar(content: Text("Please enter a search term or select a category")),
       );
       return;
     }
@@ -53,7 +53,7 @@ class _SearchPageState extends State<SearchPage> {
       });
     } catch (e) {
       setState(() {
-        _errorMessage = "เกิดข้อผิดพลาด: $e";
+        _errorMessage = "Error occurred: $e";
         _isLoading = false;
       });
     }
@@ -71,11 +71,11 @@ class _SearchPageState extends State<SearchPage> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            // ช่องค้นหา
+            // Search Field
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'พิมพ์ชื่อสินค้าที่ต้องการค้นหา...',
+                hintText: 'Enter item name to search...',
                 filled: true,
                 fillColor: const Color(0xFFEBD9D1),
                 border: OutlineInputBorder(
@@ -98,7 +98,7 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 10),
 
-            // เลือกหมวดหมู่
+            // Select Categories
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -127,14 +127,14 @@ class _SearchPageState extends State<SearchPage> {
             ),
             const SizedBox(height: 10),
 
-            // แสดงสถานะโหลดหรือผลลัพธ์
+            // Display loading status or results
             Expanded(
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _errorMessage != null
                       ? Center(child: Text(_errorMessage!))
                       : _searchResults.isEmpty
-                          ? const Center(child: Text("ยังไม่มีผลลัพธ์การค้นหา"))
+                          ? const Center(child: Text("No results found"))
                           : GridView.builder(
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(

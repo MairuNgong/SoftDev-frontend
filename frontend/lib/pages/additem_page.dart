@@ -74,12 +74,12 @@ class _AddItemPageState extends State<AddItemPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ เพิ่มสินค้าเรียบร้อย!")),
+        const SnackBar(content: Text("✅ Item added successfully!")),
       );
       Navigator.pop(context);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("❌ เกิดข้อผิดพลาด: $e")),
+        SnackBar(content: Text("❌ Error occurred: $e")),
       );
     }
   }
@@ -89,7 +89,7 @@ class _AddItemPageState extends State<AddItemPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4EF),
       appBar: AppBar(
-        title: const Text("เพิ่มสินค้า"),
+        title: const Text("Add Item"),
         backgroundColor: const Color(0xFF5B7C6E),
       ),
       body: SingleChildScrollView(
@@ -113,22 +113,22 @@ class _AddItemPageState extends State<AddItemPage> {
               ),
               const SizedBox(height: 20),
 
-              // 🔹 ชื่อสินค้า
+              // 🔹 Item Name
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: "ชื่อสินค้า",
+                  labelText: "Item Name",
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) => v!.isEmpty ? "กรุณากรอกชื่อสินค้า" : null,
+                validator: (v) => v!.isEmpty ? "Please enter item name" : null,
               ),
               const SizedBox(height: 16),
 
-              // 🔹 Slider ราคา
+              // 🔹 Price Range Slider
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text("ช่วงราคา", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const Text("Price Range", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   RangeSlider(
                     values: RangeValues(_minPrice, _maxPrice),
                     min: 0,
@@ -151,21 +151,21 @@ class _AddItemPageState extends State<AddItemPage> {
               ),
               const SizedBox(height: 16),
 
-              // 🔹 คำอธิบายสินค้า
+              // 🔹 Item Description
               TextFormField(
                 controller: _descriptionController,
                 maxLines: 3,
                 decoration: const InputDecoration(
-                  labelText: "คำอธิบายสินค้า",
+                  labelText: "Item Description",
                   border: OutlineInputBorder(),
                 ),
               ),
               const SizedBox(height: 16),
 
-              // 🔹 หมวดหมู่พร้อม Icon
+              // 🔹 Categories with Icon
               Align(
                 alignment: Alignment.centerLeft,
-                child: const Text("หมวดหมู่", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text("Categories", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -205,7 +205,7 @@ class _AddItemPageState extends State<AddItemPage> {
                   minimumSize: const Size.fromHeight(50),
                 ),
                 child: const Text(
-                  "เพิ่มสินค้า",
+                  "Add Item",
                   style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),
