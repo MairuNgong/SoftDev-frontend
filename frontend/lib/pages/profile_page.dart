@@ -99,10 +99,10 @@ Widget build(BuildContext context) {
         return const Scaffold(body: Center(child: CircularProgressIndicator()));
       }
       if (snapshot.hasError) {
-        return Scaffold(body: Center(child: Text('เกิดข้อผิดพลาด: ${snapshot.error}')));
+        return Scaffold(body: Center(child: Text('Error occurred: ${snapshot.error}')));
       }
       if (!snapshot.hasData) {
-        return const Scaffold(body: Center(child: Text('ไม่พบข้อมูลโปรไฟล์')));
+        return const Scaffold(body: Center(child: Text('Profile data not found')));
       }
 
       // --- ส่วนเตรียมข้อมูล (เหมือนเดิม) ---
