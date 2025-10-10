@@ -67,12 +67,18 @@ class _ProfilePageState extends State<ProfilePage> {
             .map((cat) => cat.name)
             .toList();
 
+        print('Selected category IDs: $newSelectedIds'); // ✨ Debug log
+        print('Selected category names: $newCategoryNames'); // ✨ Debug log
+
         // เรียก ApiService เพื่อส่งข้อมูลไปที่ Backend
         await ApiService().updateUserCategories(newCategoryNames);
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Interests updated!'), backgroundColor: Colors.green),
         );
+        // ✨ รอสักครู่ก่อน refresh เพื่อให้ backend ประมวลผลเสร็จ
+        await Future.delayed(const Duration(milliseconds: 500));
+        
         // Refresh หน้าโปรไฟล์ทั้งหมดเพื่อให้เห็นการเปลี่ยนแปลง
         setState(() {
           _profileFuture = _fetchProfileData();
@@ -124,11 +130,15 @@ Widget build(BuildContext context) {
               SliverToBoxAdapter(
                 child: ProfileHeader(
                   username: userProfile.name,
-                  location: userProfile.location ?? 'ยังไม่ได้ระบุ',
+                  location: userProfile.location ?? 'Not specified',
                   avatarUrl: userProfile.profilePicture ?? 'https://via.placeholder.com/150',
-                  bio: userProfile.bio ?? 'ยังไม่ได้ระบุ',
-                  contact: userProfile.contact ?? 'ยังไม่ได้ระบุ',
+                  bio: userProfile.bio ?? 'Not specified',
+                  contact: userProfile.contact ?? 'Not specified',
                   userCategories: categoryNames,
+                  // ✨ ส่งข้อมูลสถิติจริง
+                  availableItemsCount: profileResponse.availableItems.length,
+                  ratingScore: userProfile.ratingScore.toDouble(),
+                  completeItemsCount: profileResponse.completeItems.length,
                   onEditCategories: () => _openCategoryModal(userProfile),
                   onEdit: () async {
                     final updatedProfile = await showModalBottomSheet<UserProfile>(
@@ -141,7 +151,10 @@ Widget build(BuildContext context) {
                         return EditProfilePage(currentUserProfile: userProfile);
                       },
                     );
+                    // ✨ เฉพาะเมื่อมีการอัปเดตโปรไฟล์จริงๆ ถึงจะ refresh
                     if (updatedProfile != null) {
+                      // ✨ รอสักครู่ก่อน refresh เพื่อให้ backend ประมวลผลเสร็จ
+                      await Future.delayed(const Duration(milliseconds: 500));
                       setState(() {
                         _profileFuture = _fetchProfileData();
                       });
@@ -182,11 +195,19 @@ Widget build(BuildContext context) {
           
           // ส่วนของ FloatingActionButton (เหมือนเดิม)
           floatingActionButton: FloatingActionButton(
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              // ✨ รอผลลัพธ์จากหน้า AddItemPage
+              final result = await Navigator.push<bool>(
                 context,
                 MaterialPageRoute(builder: (context) => const AddItemPage()),
               );
+              
+              // ✨ ถ้า add item สำเร็จ ให้ refresh profile
+              if (result == true) {
+                setState(() {
+                  _profileFuture = _fetchProfileData();
+                });
+              }
             },
             backgroundColor: const Color(0xFF5B7C6E),
             shape: const CircleBorder(),

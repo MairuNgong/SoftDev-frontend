@@ -9,6 +9,10 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback? onEdit;
   final List<String> userCategories;
   final VoidCallback onEditCategories;
+  // ✨ เพิ่ม parameters สำหรับข้อมูลสถิติจริง
+  final int availableItemsCount;
+  final double ratingScore;
+  final int completeItemsCount;
   
 
   const ProfileHeader({
@@ -21,6 +25,10 @@ class ProfileHeader extends StatelessWidget {
     this.contact,
     required this.userCategories,
     required this.onEditCategories,
+    // ✨ เพิ่ม required parameters ใหม่
+    required this.availableItemsCount,
+    required this.ratingScore,
+    required this.completeItemsCount,
   });
 
 @override
@@ -95,9 +103,9 @@ Widget build(BuildContext context) {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              buildStatColumn('Items', '12'),
-              buildStatColumn('Rating', '4.5'),
-              buildStatColumn('Swaps', '34'),
+              buildStatColumn('Items', availableItemsCount.toString()),
+              buildStatColumn('Rating', ratingScore.toStringAsFixed(1)),
+              buildStatColumn('Swaps', completeItemsCount.toString()),
             ],
           ),
         ),

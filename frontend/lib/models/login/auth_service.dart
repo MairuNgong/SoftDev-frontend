@@ -14,10 +14,23 @@ class AuthService {
   // 1. แก้ไข launchGoogleAuthUrl
   // เอา BuildContext ออก และใช้ throw Exception แทน
   Future<void> launchGoogleAuthUrl() async {
-    final uri = Uri.parse('$_authUrl/auth/google?prompt=select_account&prompt=consent');
+    // ✨ บังคับให้เลือก account ใหม่ทุกครั้งและเคลียร์ session
+    final uri = Uri.parse('$_authUrl/auth/google?prompt=select_account&prompt=consent&access_type=offline');
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       // เมื่อเกิด Error ให้โยน Exception ออกไป
       throw Exception("Failed to launch URL: $uri");
+    }
+  }
+
+  // ✨ เพิ่มฟังก์ชันสำหรับ Google Sign Out
+  Future<void> signOutFromGoogle() async {
+    // เปิด Google logout page เพื่อเคลียร์ session
+    final uri = Uri.parse('https://accounts.google.com/logout');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      // ไม่ต้อง throw error หาก logout ไม่สำเร็จ
+      print("Google logout failed: $e");
     }
   }
 
