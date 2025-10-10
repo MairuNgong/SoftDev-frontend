@@ -76,7 +76,8 @@ class _AddItemPageState extends State<AddItemPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("✅ Item added successfully!")),
       );
-      Navigator.pop(context);
+      // ✨ ส่งสัญญาณกลับว่า add item สำเร็จ
+      Navigator.pop(context, true);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("❌ Error occurred: $e")),

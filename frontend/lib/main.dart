@@ -51,7 +51,15 @@ class _MyAppState extends State<MyApp> {
 
   /// Callback สำหรับเปลี่ยนสถานะเป็นล็อกเอาท์
   void _handleLogout() async {
-    // ✨ 4. เคลียร์ข้อมูลทั้งหมดใน Storage ก่อน
+    try {
+      // ✨ 1. Sign out จาก Google ก่อน
+      await authService.signOutFromGoogle();
+    } catch (e) {
+      // หากไม่สามารถ sign out จาก Google ได้ ให้ทำต่อไป
+      print("Google sign out failed: $e");
+    }
+    
+    // ✨ 2. เคลียร์ข้อมูลทั้งหมดใน Storage
     await UserStorageService().deleteAll();
     authService.dispose();
     setState(() {

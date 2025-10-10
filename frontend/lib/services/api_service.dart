@@ -88,12 +88,16 @@ class ApiService {
   Future<void> updateUserCategories(List<String> categoryNames) async {
     try {
       final body = {'categoryNames': categoryNames};
-      await _dio.put('/users', data: body);
+      print('Updating categories with: $body'); // ✨ Debug log
+      final response = await _dio.put('/users', data: body);
+      print('Categories update response: ${response.statusCode}'); // ✨ Debug log
     } on DioException catch (e) {
+      print('DioException updating categories: ${e.response?.data}'); // ✨ Debug log
       throw Exception(
         'Failed to update categories: ${e.response?.data['message'] ?? e.message}',
       );
     } catch (e) {
+      print('Unknown error updating categories: $e'); // ✨ Debug log
       throw Exception('An unknown error occurred: $e');
     }
   }

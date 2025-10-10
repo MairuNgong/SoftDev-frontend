@@ -26,6 +26,31 @@ class _MainPageState extends State<MainPage> {
     RatingPage(),
   ];
   
+  // ✨ เพิ่มฟังก์ชันแสดง Dialog ยืนยันการ Logout
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onLogout();
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +61,7 @@ class _MainPageState extends State<MainPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: widget.onLogout,
+            onPressed: () => _showLogoutDialog(context),
           ),
         ],
       ),
