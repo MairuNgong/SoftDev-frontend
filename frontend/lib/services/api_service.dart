@@ -65,7 +65,19 @@ class ApiService {
     File? imageFile,
   }) async {
     try {
-      final formData = FormData.fromMap(userData);
+      // ✨ แยก categoryNames ออกมาเพื่อจัดการแยก
+      final categoryNames = userData['categoryNames'] as List<String>?;
+      final dataWithoutCategories = Map<String, dynamic>.from(userData)..remove('categoryNames');
+      
+      final formData = FormData.fromMap(dataWithoutCategories);
+      
+      // ✨ เพิ่ม categoryNames แบบ array ให้ถูกต้อง
+      if (categoryNames != null && categoryNames.isNotEmpty) {
+        for (var category in categoryNames) {
+          formData.fields.add(MapEntry('categoryNames', category));
+        }
+      }
+      
       if (imageFile != null) {
         String fileName = p.basename(imageFile.path);
         formData.files.add(
@@ -75,11 +87,16 @@ class ApiService {
           ),
         );
       }
+      
+      print('FormData fields: ${formData.fields}'); // ✨ Debug log
+      
       final response = await _dio.put('/users', data: formData);
       return UserProfile.fromJson(response.data);
     } on DioException catch (e) {
+      print('DioException updating profile: ${e.response?.data}'); // ✨ Debug log
       throw Exception('Failed to update profile: ${e.message}');
     } catch (e) {
+      print('Unknown error updating profile: $e'); // ✨ Debug log
       throw Exception('An unknown error occurred: $e');
     }
   }
