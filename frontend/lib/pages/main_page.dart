@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/pages/history_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/profile_page.dart';
-import 'package:frontend/pages/rating_page.dart';
 import 'package:frontend/pages/search_page.dart';
 
 
@@ -23,7 +22,7 @@ class _MainPageState extends State<MainPage> {
     SearchPage(),
     ProfilePage(),
     HistoryPage(),
-    RatingPage(),
+      HistoryPage(),
   ];
   
   // ✨ เพิ่มฟังก์ชันแสดง Dialog ยืนยันการ Logout

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'package:frontend/models/transaction_model.dart';
+import 'package:frontend/pages/rating_page.dart'; // ✨ 1. Import RatingPage
 import 'package:frontend/services/api_service.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -28,14 +29,21 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   void _loadCurrentUserAndFetchTransactions() async {
-    // await Future.delayed(const Duration(milliseconds: 300)); // Optional: for testing
-    
     final userString = await UserStorageService().readUserData();
     if (userString != null && mounted) {
       final email = jsonDecode(userString)['email'];
       
       setState(() {
         _currentUserEmail = email;
+        _transactionsFuture = ApiService().getTransactions();
+      });
+    }
+  }
+
+  // ✨ 2. สร้างฟังก์ชันสำหรับ Refresh ข้อมูล
+  void _refreshTransactions() {
+    if (_currentUserEmail != null) {
+      setState(() {
         _transactionsFuture = ApiService().getTransactions();
       });
     }
@@ -89,6 +97,10 @@ class _HistoryPageState extends State<HistoryPage> {
                 }
 
                 final transactions = snapshot.data!;
+                
+                // ✨ 3. เรียงข้อมูล Transaction จากใหม่ไปเก่า โดยใช้ updatedAt
+                transactions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   itemCount: transactions.length,
@@ -97,6 +109,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     return TransactionCard(
                       transaction: transaction,
                       currentUserEmail: _currentUserEmail!,
+                      onRated: _refreshTransactions, // ✨ 4. ส่งฟังก์ชัน refresh ไปให้ Card
                     );
                   },
                 );
@@ -112,11 +125,13 @@ class _HistoryPageState extends State<HistoryPage> {
 class TransactionCard extends StatelessWidget {
   final Transaction transaction;
   final String currentUserEmail;
+  final VoidCallback onRated; // ✨ 5. รับ Callback function
 
   const TransactionCard({
     super.key,
     required this.transaction,
     required this.currentUserEmail,
+    required this.onRated, // ✨ 5. เพิ่มใน constructor
   });
 
   @override
@@ -132,6 +147,18 @@ class TransactionCard extends StatelessWidget {
     final opponentEmail = transaction.offerEmail == currentUserEmail
         ? transaction.accepterEmail
         : transaction.offerEmail;
+    
+        print('Transaction ID: ${transaction.id}, Status: ${transaction.status}, Offerer Rating: ${transaction.offererRating}, Accepter Rating: ${transaction.accepterRating}');
+
+
+    // ✨ 6. สร้าง Logic สำหรับตรวจสอบว่าจะแสดงปุ่ม Rate หรือไม่
+    final String status = transaction.status.toLowerCase();
+    final bool isCompletedOrCancelled = status == 'complete' || status == 'cancelled';
+    final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
+    final bool hasRated = isCurrentUserOfferer
+        ? transaction.accepterRating != null  // ถ้าฉันเป็น Offerer, ให้เช็คว่า Accepter มีคะแนนหรือยัง
+        : transaction.offererRating != null;   // ถ้าฉันเป็น Accepter, ให้เช็คว่า Offerer มีคะแนนหรือยัง
+    final bool canRate = isCompletedOrCancelled && !hasRated;
 
     final statusInfo = _getStatusInfo(transaction.status);
 
@@ -163,6 +190,42 @@ class TransactionCard extends StatelessWidget {
             _buildSectionTitle(context, 'You Received', Icons.arrow_downward, kThemeGreen),
             const SizedBox(height: 8),
             _buildItemList(theirItems, context),
+            
+            // ✨ 7. เพิ่มปุ่ม "Rate this Trade" ถ้าเงื่อนไขตรง
+            if (canRate)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      // ✨ 8. เมื่อกดปุ่ม ให้ Navigate ไปยัง RatingPage
+                      final bool? ratingSubmitted = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (context) => RatingPage(
+                            transaction: transaction,
+                            currentUserEmail: currentUserEmail,
+                          ),
+                        ),
+                      );
+
+                      // ✨ 9. ถ้า RatingPage ส่งค่า true กลับมา ให้เรียก callback เพื่อ refresh
+                      if (ratingSubmitted == true) {
+                        onRated();
+                      }
+                    },
+                    icon: const Icon(Icons.star_outline_rounded),
+                    label: const Text('Rate this Trade'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kThemeGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
