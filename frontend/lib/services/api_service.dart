@@ -156,6 +156,38 @@ class ApiService {
     }
   }
 
+   Future<void> rateTransaction({
+    required int transactionId,
+    required double score, // ใช้ double เพื่อรองรับคะแนนทศนิยม
+  }) async {
+    try {
+      // Debug logs
+      print('rateTransaction called with:');
+      print('- transactionId: $transactionId (${transactionId.runtimeType})');
+      print('- score: $score (${score.runtimeType})');
+      
+      // 1. สร้าง body ให้มีโครงสร้างตรงกับที่ Backend ต้องการ
+      final body = {
+        'transactionId': transactionId,
+        'score': score,
+      };
+      print('Request body: $body');
+
+      // 2. ยิง PUT request ไปที่ /transactions/rate พร้อมกับส่ง body
+      // dio จะใส่ Header 'Content-Type: application/json' ให้เอง
+      final response = await _dio.post(
+        '/transactions/rate',
+        data: body,
+      );
+      print('Response: ${response.statusCode} - ${response.data}');
+    } on DioException catch (e) {
+      // 3. จัดการ Error ที่อาจเกิดขึ้น
+      throw Exception('Failed to submit rating: ${e.response?.data['message'] ?? e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
   Future<List<String>> getRequestItems(String email) async {
     try {
       final response = await _dio.get('/...');

@@ -105,7 +105,7 @@ Widget build(BuildContext context) {
             children: [
               buildStatColumn('Items', availableItemsCount.toString()),
               buildStatColumn('Rating', ratingScore.toStringAsFixed(1)),
-              buildStatColumn('Swaps', completeItemsCount.toString()),
+              buildStatColumn('Success', completeItemsCount.toString()),
             ],
           ),
         ),
