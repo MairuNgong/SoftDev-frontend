@@ -328,41 +328,45 @@ class TransactionCard extends StatelessWidget {
     );
   }
   
-  _StatusInfo _getStatusInfo(String status) {
-    switch (status.toLowerCase()) {
-      case 'offering':
-        return _StatusInfo(
-          icon: Icons.hourglass_empty,
-          backgroundColor: Colors.amber.shade100,
-          textColor: Colors.amber.shade800,
-        );
-      // ✨ ADDED: เพิ่ม Case สำหรับสถานะ 'Matching'
-      case 'matching':
-        return _StatusInfo(
-          icon: Icons.swap_horiz,
-          backgroundColor: Colors.blue.shade100,
-          textColor: Colors.blue.shade800,
-        );
-      case 'completed':
-        return _StatusInfo(
-          icon: Icons.check_circle,
-          backgroundColor: const Color(0xFFE4EAE3),
-          textColor: kThemeGreen,
-        );
-      case 'cancelled':
-        return _StatusInfo(
-          icon: Icons.cancel_outlined,
-          backgroundColor: Colors.grey.shade300,
-          textColor: Colors.grey.shade800,
-        );
-      default:
-        return _StatusInfo(
-          icon: Icons.help_outline,
-          backgroundColor: Colors.grey.shade200,
-          textColor: Colors.grey.shade700,
-        );
-    }
+_StatusInfo _getStatusInfo(String status) {
+  switch (status.toLowerCase()) {
+    case 'offering': // กำลังเสนอ/รอคู่
+      return _StatusInfo(
+        icon: Icons.hourglass_top_rounded,
+        backgroundColor: const Color(0xFFFFF8E1), // soft amber
+        textColor: const Color(0xFFF9A825), // amber 800
+      );
+
+    case 'matching': // กำลังจับคู่
+      return _StatusInfo(
+        icon: Icons.autorenew_rounded,
+        backgroundColor: const Color(0xFFE3F2FD), // soft blue
+        textColor: const Color(0xFF1976D2), // blue 700
+      );
+
+    case 'complete': // เสร็จสิ้น
+      return _StatusInfo(
+        icon: Icons.check_circle_rounded,
+        backgroundColor: const Color(0xFFE8F5E9), // soft green
+        textColor: const Color(0xFF2E7D32), // green 700
+      );
+
+    case 'cancelled': // ยกเลิก
+      return _StatusInfo(
+        icon: Icons.highlight_off_rounded,
+        backgroundColor: const Color(0xFFFFEBEE), // soft red
+        textColor: const Color(0xFFC62828), // red 700
+      );
+
+    default: // ไม่ทราบสถานะ
+      return _StatusInfo(
+        icon: Icons.help_outline_rounded,
+        backgroundColor: const Color(0xFFF5F5F5),
+        textColor: const Color(0xFF616161),
+      );
   }
+}
+
 }
 
 class _StatusInfo {

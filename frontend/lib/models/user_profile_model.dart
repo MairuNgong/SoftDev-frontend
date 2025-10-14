@@ -100,7 +100,7 @@ class UserProfile {
       bio: json['Bio'], // ชื่อ key ไม่ตรงกับ convention ทั่วไป ต้องระวัง
       location: json['Location'],
       profilePicture: json['ProfilePicture'],
-      ratingScore: json['RatingScore'],
+      ratingScore: (json['RatingScore'] as num?)?.toInt() ?? 0, // แก้ไขให้รองรับทั้ง int และ double
       contact: json['Contact'],
       idCard: json['IDcard'],
       createdAt: DateTime.parse(json['createdAt']), // แปลง String เป็น DateTime

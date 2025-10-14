@@ -175,7 +175,7 @@ class ApiService {
 
       // 2. ยิง PUT request ไปที่ /transactions/rate พร้อมกับส่ง body
       // dio จะใส่ Header 'Content-Type: application/json' ให้เอง
-      final response = await _dio.put(
+      final response = await _dio.post(
         '/transactions/rate',
         data: body,
       );

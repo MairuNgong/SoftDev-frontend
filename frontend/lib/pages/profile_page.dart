@@ -131,7 +131,7 @@ Widget build(BuildContext context) {
                 child: ProfileHeader(
                   username: userProfile.name,
                   location: userProfile.location ?? 'Not specified',
-                  avatarUrl: userProfile.profilePicture ?? 'https://via.placeholder.com/150',
+                  avatarUrl: userProfile.profilePicture ?? 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png?20150327203541',
                   bio: userProfile.bio ?? 'Not specified',
                   contact: userProfile.contact ?? 'Not specified',
                   userCategories: categoryNames,
