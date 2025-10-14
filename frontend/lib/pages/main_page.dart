@@ -22,7 +22,6 @@ class _MainPageState extends State<MainPage> {
     SearchPage(),
     ProfilePage(),
     HistoryPage(),
-      HistoryPage(),
   ];
   
   // ✨ เพิ่มฟังก์ชันแสดง Dialog ยืนยันการ Logout
@@ -78,7 +77,6 @@ class _MainPageState extends State<MainPage> {
           Icon(Icons.search, size: 30, color: Colors.white),
           Icon(Icons.person, size: 30, color: Colors.white),
           Icon(Icons.access_time_filled, size: 30, color: Colors.white),
-          Icon(Icons.star, size: 30, color: Colors.white),
     
 
         ],

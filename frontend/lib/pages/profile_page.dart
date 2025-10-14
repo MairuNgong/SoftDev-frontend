@@ -137,7 +137,7 @@ Widget build(BuildContext context) {
                   userCategories: categoryNames,
                   // ✨ ส่งข้อมูลสถิติจริง
                   availableItemsCount: profileResponse.availableItems.length,
-                  ratingScore: userProfile.ratingScore.toDouble(),
+                  ratingScore: userProfile.ratingScore, // ไม่ต้อง .toDouble() แล้วเพราะเป็น double อยู่แล้ว
                   completeItemsCount: profileResponse.completeItems.length,
                   onEditCategories: () => _openCategoryModal(userProfile),
                   onEdit: () async {

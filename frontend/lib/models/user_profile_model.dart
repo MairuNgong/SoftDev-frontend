@@ -71,7 +71,7 @@ class UserProfile {
   final String? bio; // ใช้ ? เพื่อบอกว่าค่านี้อาจเป็น null ได้
   final String? location;
   final String? profilePicture;
-  final int ratingScore;
+  final double ratingScore; // เปลี่ยนจาก int เป็น double
   final String? contact;
   final String? idCard;
   final DateTime createdAt;
@@ -100,7 +100,7 @@ class UserProfile {
       bio: json['Bio'], // ชื่อ key ไม่ตรงกับ convention ทั่วไป ต้องระวัง
       location: json['Location'],
       profilePicture: json['ProfilePicture'],
-      ratingScore: (json['RatingScore'] as num?)?.toInt() ?? 0, // แก้ไขให้รองรับทั้ง int และ double
+      ratingScore: (json['RatingScore'] as num?)?.toDouble() ?? 0.0, // แก้ไขให้ parse เป็น double
       contact: json['Contact'],
       idCard: json['IDcard'],
       createdAt: DateTime.parse(json['createdAt']), // แปลง String เป็น DateTime
