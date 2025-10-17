@@ -60,13 +60,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
       setState(() => _isLoading = true);
 
       try {
-        // ✨ 3. เพิ่ม Contact เข้าไปในข้อมูลที่จะส่ง
+        // ✨ 3. เพิ่ม Contact และ Categories เข้าไปในข้อมูลที่จะส่ง
         final userData = {
           'name': _nameController.text,
           'Location': _locationController.text,
           'Bio': _bioController.text,
           'Contact': _contactController.text,
+          // ✨ เพิ่ม categories เดิมไปด้วยเพื่อไม่ให้หาย
+          'categoryNames': widget.currentUserProfile.interestedCategories,
         };
+
+        print('Saving profile with categories: ${widget.currentUserProfile.interestedCategories}'); // Debug log
 
         final updatedProfile = await ApiService().updateUserProfile(
           userData: userData,
@@ -151,7 +155,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       TextFormField(
                         controller: _nameController,
                         decoration: const InputDecoration(labelText: "Name"),
-                        validator: (v) => (v == null || v.trim().isEmpty) ? "กรุณากรอกชื่อ" : null,
+                        validator: (v) => (v == null || v.trim().isEmpty) ? "Please enter your name" : null,
                       ),
                       const SizedBox(height: 16),
                       TextFormField(
@@ -180,14 +184,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 FilledButton.icon(
                   onPressed: _isLoading ? null : _save,
                   icon: const Icon(Icons.check),
-                  label: const Text("บันทึก"),
+                  label: const Text("Save"),
                   style: buttonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
                   onPressed: _isLoading ? null : () => Navigator.pop(context),
                   icon: const Icon(Icons.close),
-                  label: const Text("ยกเลิก"),
+                  label: const Text("Cancel"),
                   style: outlinedButtonStyle, // ✨ 6. ใช้สไตล์ที่กำหนด
                 ),
               ],

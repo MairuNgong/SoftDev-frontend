@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'package:frontend/models/transaction_model.dart';
+import 'package:frontend/pages/rating_page.dart'; // ✨ 1. Import RatingPage
 import 'package:frontend/services/api_service.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 
-// 🎨 THEME: กำหนดค่าสีหลักตามที่คุณต้องการ
+// 🎨 THEME: กำหนดค่าสีหลัก
 const Color kThemeGreen = Color(0xFF6D8469);
 const Color kThemeBackground = Color(0xFFF1EDF2);
-const Color kPrimaryTextColor = Color(0xFF3D423C); // สีเทาเข้มอมเขียว
+const Color kPrimaryTextColor = Color(0xFF3D423C);
 
 class HistoryPage extends StatefulWidget {
   const HistoryPage({super.key});
@@ -28,8 +29,6 @@ class _HistoryPageState extends State<HistoryPage> {
   }
 
   void _loadCurrentUserAndFetchTransactions() async {
-    await Future.delayed(const Duration(milliseconds: 300));
-    
     final userString = await UserStorageService().readUserData();
     if (userString != null && mounted) {
       final email = jsonDecode(userString)['email'];
@@ -41,25 +40,32 @@ class _HistoryPageState extends State<HistoryPage> {
     }
   }
 
+  // ✨ 2. สร้างฟังก์ชันสำหรับ Refresh ข้อมูล
+  void _refreshTransactions() {
+    if (_currentUserEmail != null) {
+      setState(() {
+        _transactionsFuture = ApiService().getTransactions();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // 🎨 THEME: เปลี่ยนสีพื้นหลังของ Scaffold
       backgroundColor: kThemeBackground,
       appBar: AppBar(
         title: const Text('Trade History'),
-        // 🎨 THEME: เปลี่ยนสี AppBar และสีตัวอักษร/ไอคอน
         backgroundColor: kThemeGreen,
         foregroundColor: Colors.white,
-        elevation: 0, // ทำให้ดูเรียบเนียนไปกับพื้นหลัง
+        elevation: 0,
       ),
       body: _transactionsFuture == null
-          ? const Center(child: CircularProgressIndicator(color: kThemeGreen)) // 🎨 THEME: เปลี่ยนสี Loading
+          ? const Center(child: CircularProgressIndicator(color: kThemeGreen))
           : FutureBuilder<List<Transaction>>(
               future: _transactionsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: kThemeGreen)); // 🎨 THEME: เปลี่ยนสี Loading
+                  return const Center(child: CircularProgressIndicator(color: kThemeGreen));
                 }
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
@@ -72,13 +78,11 @@ class _HistoryPageState extends State<HistoryPage> {
                         Icon(
                           Icons.history_toggle_off_outlined,
                           size: 80,
-                          // 🎨 THEME: เปลี่ยนสีไอคอนในหน้าว่าง
                           color: kThemeGreen.withOpacity(0.5),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No History Found',
-                          // 🎨 THEME: เปลี่ยนสีข้อความในหน้าว่าง
                           style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: kThemeGreen),
                         ),
                         const SizedBox(height: 8),
@@ -93,6 +97,10 @@ class _HistoryPageState extends State<HistoryPage> {
                 }
 
                 final transactions = snapshot.data!;
+                
+                // ✨ 3. เรียงข้อมูล Transaction จากใหม่ไปเก่า โดยใช้ updatedAt
+                transactions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
                 return ListView.builder(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   itemCount: transactions.length,
@@ -101,6 +109,7 @@ class _HistoryPageState extends State<HistoryPage> {
                     return TransactionCard(
                       transaction: transaction,
                       currentUserEmail: _currentUserEmail!,
+                      onRated: _refreshTransactions, // ✨ 4. ส่งฟังก์ชัน refresh ไปให้ Card
                     );
                   },
                 );
@@ -111,16 +120,18 @@ class _HistoryPageState extends State<HistoryPage> {
 }
 
 // ======================================================================
-// Widget สำหรับแสดง Transaction 1 รายการ (ปรับสีตาม Theme)
+// ✨ Widget ที่อัปเดตให้รองรับ Model ใหม่ และ Status ใหม่
 // ======================================================================
 class TransactionCard extends StatelessWidget {
   final Transaction transaction;
   final String currentUserEmail;
+  final VoidCallback onRated; // ✨ 5. รับ Callback function
 
   const TransactionCard({
     super.key,
     required this.transaction,
     required this.currentUserEmail,
+    required this.onRated, // ✨ 5. เพิ่มใน constructor
   });
 
   @override
@@ -135,14 +146,25 @@ class TransactionCard extends StatelessWidget {
         .toList();
     final opponentEmail = transaction.offerEmail == currentUserEmail
         ? transaction.accepterEmail
-        : transaction.offerEmail; //if user is offerer, opponent is accepter
+        : transaction.offerEmail;
+    
+        print('Transaction ID: ${transaction.id}, Status: ${transaction.status}, Offerer Rating: ${transaction.offererRating}, Accepter Rating: ${transaction.accepterRating}');
+
+
+    // ✨ 6. สร้าง Logic สำหรับตรวจสอบว่าจะแสดงปุ่ม Rate หรือไม่
+    final String status = transaction.status.toLowerCase();
+    final bool isCompletedOrCancelled = status == 'complete' || status == 'cancelled';
+    final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
+    final bool hasRated = isCurrentUserOfferer
+        ? transaction.accepterRating != null  // ถ้าฉันเป็น Offerer, ให้เช็คว่า Accepter มีคะแนนหรือยัง
+        : transaction.offererRating != null;   // ถ้าฉันเป็น Accepter, ให้เช็คว่า Offerer มีคะแนนหรือยัง
+    final bool canRate = isCompletedOrCancelled && !hasRated;
 
     final statusInfo = _getStatusInfo(transaction.status);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
-      //  THEME: ทำให้เงาจางลง และใช้สีพื้นหลังการ์ดเป็นสีขาว
       shadowColor: Colors.black.withOpacity(0.1),
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -158,17 +180,52 @@ class TransactionCard extends StatelessWidget {
             const SizedBox(height: 16),
             _buildSectionTitle(context, 'You Gave', Icons.arrow_upward, Colors.redAccent),
             const SizedBox(height: 8),
-            _buildItemList(myItems, context),//กันในกรณีไม่มีไอเท็ม
+            _buildItemList(myItems, context),
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12.0),
               child: Center(
                 child: Icon(Icons.swap_vert_circle_outlined, color: Colors.grey, size: 28),
               ),
             ),
-            // 🎨 THEME: เปลี่ยนสีไอคอน "ได้รับ" ให้เป็นสีเขียวของธีม
             _buildSectionTitle(context, 'You Received', Icons.arrow_downward, kThemeGreen),
             const SizedBox(height: 8),
             _buildItemList(theirItems, context),
+            
+            // ✨ 7. เพิ่มปุ่ม "Rate this Trade" ถ้าเงื่อนไขตรง
+            if (canRate)
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      // ✨ 8. เมื่อกดปุ่ม ให้ Navigate ไปยัง RatingPage
+                      final bool? ratingSubmitted = await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (context) => RatingPage(
+                            transaction: transaction,
+                            currentUserEmail: currentUserEmail,
+                          ),
+                        ),
+                      );
+
+                      // ✨ 9. ถ้า RatingPage ส่งค่า true กลับมา ให้เรียก callback เพื่อ refresh
+                      if (ratingSubmitted == true) {
+                        onRated();
+                      }
+                    },
+                    icon: const Icon(Icons.star_outline_rounded),
+                    label: const Text('Rate this Trade'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kThemeGreen,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -178,11 +235,9 @@ class TransactionCard extends StatelessWidget {
   Widget _buildCardHeader(BuildContext context, String opponentEmail, _StatusInfo statusInfo) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      // 🎨 THEME: เปลี่ยนสีไอคอนนำ
       leading: const Icon(Icons.sync_alt, color: kThemeGreen, size: 28),
       title: Text(
         'Trade with ${opponentEmail.split('@')[0]}',
-        // 🎨 THEME: เปลี่ยนสีข้อความหลัก
         style: const TextStyle(fontWeight: FontWeight.bold, color: kPrimaryTextColor),
         overflow: TextOverflow.ellipsis,
       ),
@@ -206,7 +261,6 @@ class TransactionCard extends StatelessWidget {
         Icon(icon, color: iconColor, size: 20),
         const SizedBox(width: 8),
         Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          // 🎨 THEME: เปลี่ยนสีข้อความหัวข้อ
           fontWeight: FontWeight.w600,
           color: kPrimaryTextColor,
         )),
@@ -221,7 +275,6 @@ class TransactionCard extends StatelessWidget {
         child: Text('Nothing', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
       );
     }
-
     return Padding(
       padding: const EdgeInsets.only(left: 12.0),
       child: Column(
@@ -233,7 +286,6 @@ class TransactionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('• ${item.name}', style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  // 🎨 THEME: เปลี่ยนสีชื่อไอเทม
                   color: kPrimaryTextColor.withOpacity(0.9)
                 )),
                 if (item.itemPictures.isNotEmpty) ...[
@@ -250,8 +302,7 @@ class TransactionCard extends StatelessWidget {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(8.0),
                             child: Image.network(
-                              imageUrl,
-                              width: 70, height: 70, fit: BoxFit.cover,
+                              imageUrl, width: 70, height: 70, fit: BoxFit.cover,
                               loadingBuilder: (context, child, progress) {
                                 if (progress == null) return child;
                                 return Container(width: 70, height: 70, color: Colors.grey.shade200);
@@ -277,35 +328,45 @@ class TransactionCard extends StatelessWidget {
     );
   }
   
-  _StatusInfo _getStatusInfo(String status) {
-    switch (status.toLowerCase()) {
-      case 'offering':
-        return _StatusInfo(
-          icon: Icons.hourglass_empty,
-          backgroundColor: Colors.amber.shade100,
-          textColor: Colors.amber.shade800,
-        );
-      case 'completed':
-        // 🎨 THEME: ปรับสีสถานะ 'Completed' ให้เข้ากับธีม
-        return _StatusInfo(
-          icon: Icons.check_circle,
-          backgroundColor: const Color(0xFFE4EAE3), // สีเขียวอ่อนๆ
-          textColor: kThemeGreen, // ใช้สีเขียวเข้มของธีม
-        );
-      case 'cancelled':
-        return _StatusInfo(
-          icon: Icons.cancel,
-          backgroundColor: Colors.grey.shade300,
-          textColor: Colors.grey.shade800,
-        );
-      default:
-        return _StatusInfo(
-          icon: Icons.help_outline,
-          backgroundColor: Colors.grey.shade200,
-          textColor: Colors.grey.shade700,
-        );
-    }
+_StatusInfo _getStatusInfo(String status) {
+  switch (status.toLowerCase()) {
+    case 'offering': // กำลังเสนอ/รอคู่
+      return _StatusInfo(
+        icon: Icons.hourglass_top_rounded,
+        backgroundColor: const Color(0xFFFFF8E1), // soft amber
+        textColor: const Color(0xFFF9A825), // amber 800
+      );
+
+    case 'matching': // กำลังจับคู่
+      return _StatusInfo(
+        icon: Icons.autorenew_rounded,
+        backgroundColor: const Color(0xFFE3F2FD), // soft blue
+        textColor: const Color(0xFF1976D2), // blue 700
+      );
+
+    case 'complete': // เสร็จสิ้น
+      return _StatusInfo(
+        icon: Icons.check_circle_rounded,
+        backgroundColor: const Color(0xFFE8F5E9), // soft green
+        textColor: const Color(0xFF2E7D32), // green 700
+      );
+
+    case 'cancelled': // ยกเลิก
+      return _StatusInfo(
+        icon: Icons.highlight_off_rounded,
+        backgroundColor: const Color(0xFFFFEBEE), // soft red
+        textColor: const Color(0xFFC62828), // red 700
+      );
+
+    default: // ไม่ทราบสถานะ
+      return _StatusInfo(
+        icon: Icons.help_outline_rounded,
+        backgroundColor: const Color(0xFFF5F5F5),
+        textColor: const Color(0xFF616161),
+      );
   }
+}
+
 }
 
 class _StatusInfo {

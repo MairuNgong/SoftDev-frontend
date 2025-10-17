@@ -142,24 +142,47 @@ class _HomePageState extends State<HomePage> {
   void _handleLikeOffer(String likedItemJson) async {
     final likedItemData = jsonDecode(likedItemJson);
     final String likedItemId = likedItemData['id']?.toString() ?? 'unknown';
+    final String likedItemName = likedItemData['name'] ?? 'Unknown Item';
+    final String ownerEmail = likedItemData['ownerEmail'] ?? '';
+
+    // เปิดหน้า OfferCreationPage
     final selectedOfferItem = await Navigator.of(context).push(
       MaterialPageRoute(
-        builder:(context) => OfferCreationPage(
+        builder: (context) => OfferCreationPage(
           targetItemId: likedItemId,
-          targetItemName: likedItemData['name'] ?? 'Target Item',
+          targetItemName: likedItemName,
+          ownerEmail: ownerEmail,
+          initialSelectedItemId: likedItemId,
         ),
-      )
+      ),
     );
 
-    if(selectedOfferItem != null && selectedOfferItem is Map<String, dynamic>){
-      final myOfferItemId = selectedOfferItem['id'];
-      try {
-        await _apiService.createOffer(
-          targetItemId: likedItemId,
-          offeredItemId: myOfferItemId,
-          userEmail: _user!.email,
-        );
+    if (selectedOfferItem != null && selectedOfferItem is Map<String, dynamic>) {
+      final selectedItems = selectedOfferItem['selectedItems'];
 
+      // ✅ ป้องกัน selectedItems เป็น null หรือไม่ใช่ List
+      if (selectedItems == null || selectedItems is! List) {
+        print("⚠️ No items selected or invalid format, skipping offer creation");
+        return;
+      }
+
+      final targetItemId =
+          int.tryParse(selectedOfferItem['targetItemId'].toString()) ?? 0;
+      final userEmail = _user!.email;
+
+      // ✅ payload ตาม format backend
+      final payload = {
+        "accepterEmail": ownerEmail,
+        "offerItems": selectedItems.map((e) => int.parse(e.toString())).toList(),
+        "requestItems": [targetItemId],
+      };
+
+      print("🟢 CreateOffer Payload ↓↓↓");
+      print(JsonEncoder.withIndent('  ').convert(payload));
+      print("🟢 ----------------------");
+
+      try {
+        await _apiService.createOffer(payload);
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Offer successfully created!')),
@@ -173,9 +196,10 @@ class _HomePageState extends State<HomePage> {
         }
       }
     } else {
-      print('Offer creation cancelled or no item selected.');
+      print("⚠️ Offer creation cancelled or no items selected.");
     }
   }
+
 
   void _handleAcceptOffer(String likedItemJson){
     final likedItemData = jsonDecode(likedItemJson);

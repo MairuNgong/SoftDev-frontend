@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:frontend/pages/history_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/profile_page.dart';
-import 'package:frontend/pages/rating_page.dart';
 import 'package:frontend/pages/search_page.dart';
 
 
@@ -23,9 +22,33 @@ class _MainPageState extends State<MainPage> {
     SearchPage(),
     ProfilePage(),
     HistoryPage(),
-    RatingPage(),
   ];
   
+  // ✨ เพิ่มฟังก์ชันแสดง Dialog ยืนยันการ Logout
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                widget.onLogout();
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,7 +59,7 @@ class _MainPageState extends State<MainPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
-            onPressed: widget.onLogout,
+            onPressed: () => _showLogoutDialog(context),
           ),
         ],
       ),
@@ -54,7 +77,6 @@ class _MainPageState extends State<MainPage> {
           Icon(Icons.search, size: 30, color: Colors.white),
           Icon(Icons.person, size: 30, color: Colors.white),
           Icon(Icons.access_time_filled, size: 30, color: Colors.white),
-          Icon(Icons.star, size: 30, color: Colors.white),
     
 
         ],
