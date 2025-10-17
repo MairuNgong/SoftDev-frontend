@@ -24,7 +24,7 @@ class _HomePageState extends State<HomePage> {
   bool _isFetchingNextBatch = false;
   String _currentOption = 'FOR_YOU';
   List<String> forYouItems = [];
-  List<String> requestItems = ["Alice", "Squid", "Spiderman"];
+  List<String> requestItems = [];
   
   @override
   void initState() {
