@@ -201,33 +201,29 @@ class ApiService {
     }
   }
 
-  Future<void> createOffer({
-    required String targetItemId,
-    required String offeredItemId,
-    required String userEmail,
-  }) async {
-    final Map<String, dynamic> requestBody = {
-      'targetItemId': targetItemId,
-      'offeredItemId': offeredItemId,
-      'userEmail': userEmail,
-    };
-
+  Future<void> createOffer(Map<String, dynamic> payload) async {
     try {
+      print("🟢 Sending Offer Payload ↓↓↓");
+      print(JsonEncoder.withIndent('  ').convert(payload));
+
       final response = await _dio.post(
         '/transactions/offer',
-        data: requestBody,
+        data: payload,
       );
 
-      if (response.statusCode != 201 && response.statusCode != 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Offer created successfully!");
+        print("📩 Response: ${response.data}");
+      } else {
         throw Exception(
           'Failed to create offer. Server responded with status: ${response.statusCode}',
         );
       }
     } catch (e) {
+      print("❌ Error while sending offer: $e");
       throw Exception('Failed to send offer request: $e');
     }
   }
-
 
   Future<void> createItemWithImage({
     required String name,

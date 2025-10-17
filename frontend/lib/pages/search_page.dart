@@ -62,10 +62,10 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4EF),
+      backgroundColor: const Color.fromARGB(255, 244, 239, 239),
       appBar: AppBar(
         title: const Text('Search / Filter'),
-        backgroundColor: const Color(0xFF5B7C6E),
+        backgroundColor: const Color(0xFF6D8469),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -77,7 +77,7 @@ class _SearchPageState extends State<SearchPage> {
               decoration: InputDecoration(
                 hintText: 'Enter item name to search...',
                 filled: true,
-                fillColor: const Color(0xFFEBD9D1),
+                fillColor: const Color.fromARGB(255, 214, 214, 214),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(20),
                   borderSide: BorderSide.none,
@@ -87,7 +87,7 @@ class _SearchPageState extends State<SearchPage> {
                   child: Container(
                     margin: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5B7C6E),
+                      color: const Color(0xFF6D8469),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: const Icon(Icons.search, color: Colors.white),

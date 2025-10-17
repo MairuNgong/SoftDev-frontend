@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/pages/offer_creation_page.dart';
 import 'package:frontend/widgets/home/swipe_card.dart';
 
 class ItemDetailPage extends StatefulWidget {
@@ -17,7 +18,6 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
   @override
   void initState() {
     super.initState();
-    // 🔹 SwipeCard ต้องการ list ของ String
     _itemAsList = [jsonEncode(widget.item)];
   }
 
@@ -30,17 +30,34 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
           items: _itemAsList,
           key: ValueKey(_itemAsList.length),
 
-          // ✅ ปัดซ้ายหมด stack → กลับไป Search
+          // 👈 ปัดซ้ายกลับไปหน้า SearchPage
           onStackFinishedCallback: () {
             Navigator.pop(context);
           },
 
-          // ✅ ไม่ต้องโหลดเพิ่ม เพราะมีแค่ใบเดียว
+          // ✅ ไม่มีการ์ดถัดไป
           onItemChangedCallback: (_) {},
 
-          // ✅ ปัดขวา (Like) — จะทำอะไรเพิ่มก็ได้
+          // 👉 ปัดขวา → ไปหน้า OfferCreationPage
           onLikeAction: (itemJson) {
-            print("Liked item: $itemJson");
+            final itemData = jsonDecode(itemJson);
+
+            // ✅ เพิ่ม delay เล็กน้อยเพื่อให้ animation ของ swipe จบก่อน
+            Future.delayed(const Duration(milliseconds: 50), () {
+              if (!context.mounted) return;
+
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => OfferCreationPage(
+                    targetItemId: itemData['id'].toString(),
+                    targetItemName: itemData['name'] ?? 'Unknown Item',
+                    ownerEmail: itemData['ownerEmail'] ?? '',
+                    initialSelectedItemId: itemData['id'].toString(),
+                  ),
+                ),
+              );
+            });
           },
         ),
       ),
