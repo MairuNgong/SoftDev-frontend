@@ -145,23 +145,29 @@ class _SwipeCardState extends State<SwipeCard> {
                                   itemData['name']?.toString() ?? 'No Name',
                                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
                                 ),
-                                Text(
-                                  itemData['ItemPictures']?.toString() ?? 'No Picture data',
-                                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: Colors.white),
-                                ),
                                 const SizedBox(height: 8),
                                 _DescriptionText(text: itemData['description']),
                                 const SizedBox(height: 8),
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'Owner: ${itemData['ownerEmail']?.toString() ?? 'N/A'}',
-                                      style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                    Expanded(
+                                      child: Text(
+                                        'Owner: ${itemData['ownerEmail']?.toString() ?? 'N/A'}',
+                                        style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
-                                    Text(
-                                      'Owner Rating: ${itemData['ownerRatingScore']?.toString() ?? 'N/A'}',
-                                      style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                    const SizedBox(height: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Owner Rating: ${itemData['ownerRatingScore']?.toString() ?? 'N/A'}',
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
                                   ],
                                 )

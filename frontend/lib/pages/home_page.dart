@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-        final items = await api.getForYouItems(_user!.email); 
+        final items = await api.getForYouItems(_user!.email);
         if (mounted) {
             setState(() {
             if (!isRefetch || forYouItems.isEmpty) {
@@ -114,7 +114,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     try {
-      final items = await api.getRequestItems(_user!.email); 
+      final items = await api.getRequestItems(_user!.email);
       if (mounted) {
           setState(() {
             if (!isRefetch || requestItems.isEmpty) {
@@ -128,6 +128,12 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Error fetching "Request" items: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isFetchingNextBatch = false; 
+        });
       }
     }
   }
@@ -257,15 +263,49 @@ class _HomePageState extends State<HomePage> {
                             items: forYouItems,
                             key: ValueKey(forYouItems.length), 
                             onStackFinishedCallback: () => _fetchForYou(isRefetch: true),
-                            onItemChangedCallback: _checkAndFetchForYou,
+                            onItemChangedCallback: (remainingCount) {
+                              const threshold = 9;
+                              if (remainingCount <= threshold && !_isFetchingNextBatch) {
+                                _fetchForYou(isRefetch: true); 
+                              }
+                            },
                             onLikeAction: _handleLikeOffer,)
-                          : SwipeCard(  // Request
-                            items: requestItems,
-                            key: ValueKey(requestItems.length),
-                            onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
-                            onItemChangedCallback: _checkAndFetchForYou,
-                            onLikeAction: _handleAcceptOffer,)
-                      ), // Request
+                          : requestItems.isNotEmpty 
+                            ? SwipeCard(  // Request
+                              items: requestItems,
+                              key: ValueKey(requestItems.length),
+                              onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
+                              onItemChangedCallback: (remainingCount) {
+                                const threshold = 9;
+                                if (remainingCount <= threshold && !_isFetchingNextBatch) {
+                                  _fetchRequest(isRefetch: true); 
+                                }
+                              },
+                              onLikeAction: _handleAcceptOffer,)
+                            : Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.import_export_outlined,
+                                    size: 80,
+                                    color: kThemeGreen.withValues(alpha: 50),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No Request Found',
+                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: kThemeGreen),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  const Text(
+                                    'Offer request from others will appear here.',
+                                    style: TextStyle(color: Colors.grey),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            ),
+                  ),
                   const SizedBox(height: 20),
                 ],
               )
@@ -294,3 +334,4 @@ class OptionPage extends StatelessWidget {
     );
   }
 }
+
