@@ -18,12 +18,31 @@ class Item {
   });
 
   factory Item.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely parse ID with fallback
+    int parseId(dynamic value) {
+      if (value == null) {
+        return -1;
+      }
+      if (value is int) {
+        return value;
+      }
+      if (value is String) {
+        final cleanValue = value.trim();
+        final parsed = int.tryParse(cleanValue);
+        if (parsed == null) {
+          return -1;
+        }
+        return parsed;
+      }
+      return -1;
+    }
+
     return Item(
-      id: json['id'],
-      name: json['name'],
-      priceRange: json['priceRange'],
-      description: json['description'] ?? '', // ป้องกันค่า null
-      ownerEmail: json['ownerEmail'],
+      id: parseId(json['id']),
+      name: json['name'] ?? '',
+      priceRange: json['priceRange'] ?? '',
+      description: json['description'] ?? '',
+      ownerEmail: json['ownerEmail'] ?? '',
       itemCategories: List<String>.from(json['ItemCategories'] ?? []),
       itemPictures: List<String>.from(json['ItemPictures'] ?? []),
     );

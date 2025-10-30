@@ -94,6 +94,13 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  // ฟังก์ชันสำหรับ refresh profile data
+  void _refreshProfile() {
+    setState(() {
+      _profileFuture = _fetchProfileData();
+    });
+  }
+
 
   @override
 Widget build(BuildContext context) {
@@ -111,14 +118,10 @@ Widget build(BuildContext context) {
         return const Scaffold(body: Center(child: Text('Profile data not found')));
       }
 
-      // --- ส่วนเตรียมข้อมูล (เหมือนเดิม) ---
+      // --- ส่วนเตรียมข้อมูล (เปลี่ยนเป็นส่ง items แทน images) ---
       final profileResponse = snapshot.data!;
       final userProfile = profileResponse.user;
       final categoryNames = userProfile.interestedCategories;
-      
-      final availableImages = profileResponse.availableItems.expand((item) => item.itemPictures).toList();
-      final matchingImages = profileResponse.matchingItems.expand((item) => item.itemPictures).toList();
-      final completeImages = profileResponse.completeItems.expand((item) => item.itemPictures).toList();
 
       // --- ✨ โครงสร้าง UI ใหม่ที่เพิ่ม TabBar ---
       return DefaultTabController(
@@ -184,9 +187,13 @@ Widget build(BuildContext context) {
               SliverFillRemaining(
                 child: TabBarView(
                   children: [
-                    ProfileGrid(images: availableImages),
-                    ProfileGrid(images: matchingImages),
-                    ProfileGrid(images: completeImages),
+                    ProfileGrid(
+                      items: profileResponse.availableItems, 
+                      isAvailableTab: true,
+                      onItemChanged: _refreshProfile,
+                    ),
+                    ProfileGrid(items: profileResponse.matchingItems),
+                    ProfileGrid(items: profileResponse.completeItems),
                   ],
                 ),
               ),
