@@ -125,7 +125,7 @@ class ApiService {
         '/items/available_items/',
         queryParameters: {'email': email},
       );
-      final List<dynamic> jsonList = response.data['items'];
+      final List<dynamic> jsonList = response.data['items'] ?? [];
       List<String> items = jsonList.map((item) => jsonEncode(item)).toList();
       return items;
     } on DioException catch (e) {
@@ -190,8 +190,11 @@ class ApiService {
 
   Future<List<String>> getRequestItems(String email) async {
     try {
-      final response = await _dio.get('/...');
-      final List<dynamic> jsonList = response.data['items'];
+      final response = await _dio.get(
+        '/transactions/get_offer',
+        queryParameters: {'email': email}
+      );
+      final List<dynamic> jsonList = response.data['items'] ?? [];
       List<String> items = jsonList.map((item) => item.toString()).toList();
       return items;
     } on DioException catch (e) {

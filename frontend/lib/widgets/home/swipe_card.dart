@@ -23,6 +23,7 @@ class SwipeCard extends StatefulWidget {
 class _SwipeCardState extends State<SwipeCard> {
   late MatchEngine _matchEngine;
   final List<SwipeItem> _swipeItems = <SwipeItem>[];
+  
 
   @override
   void initState() {
@@ -69,6 +70,16 @@ class _SwipeCardState extends State<SwipeCard> {
             String itemJsonString = _swipeItems[index].content as String;
             try {
               final Map<String, dynamic> itemData = jsonDecode(itemJsonString);
+              if (itemData.isEmpty){
+                return Text(
+                  "No Request for you now", 
+                  style: 
+                    TextStyle(
+                      fontSize: 30, fontWeight: FontWeight.bold, color: Color.fromARGB(255, 184, 124, 76)
+                    )
+                  );
+              }
+
               return Card(
                 margin: const EdgeInsets.all(0.0),
                 shape: RoundedRectangleBorder(
@@ -140,62 +151,28 @@ class _SwipeCardState extends State<SwipeCard> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text(
-                                      'Owner: ${itemData['ownerEmail']?.toString() ?? 'N/A'}',
-                                      style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                    Expanded(
+                                      child: Text(
+                                        'Owner: ${itemData['ownerEmail']?.toString() ?? 'N/A'}',
+                                        style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
-                                    Text(
-                                      'Rating: ${itemData['ownerRatingScore']?.toString() ?? 'N/A'}',
-                                      style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                    const SizedBox(height: 8),
+                                    Expanded(
+                                      child: Text(
+                                        'Owner Rating: ${itemData['ownerRatingScore']?.toString() ?? 'N/A'}',
+                                        textAlign: TextAlign.right,
+                                        style: const TextStyle(fontSize: 14, color: Colors.white54),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1,
+                                      ),
                                     ),
                                   ],
                                 )
                               ]
                             )
-                    
-
-
-                    
-                    // Image(
-                    //   image: AssetImage('assets/login/login_bg_1.jpg'),
-                    //   fit: BoxFit.fill,
-                    // ),
-                    // Text(
-                    //   itemData['id']?.toString() ?? 'No ID',
-                    //   style: TextStyle(fontSize: 24, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['name']?.toString() ?? 'No item name',
-                    //   style: TextStyle(fontSize: 24, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['description']?.toString() ?? 'No description',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['ownerEmail']?.toString() ?? 'No owner',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['ownerRating']?.toString() ?? 'No rating',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['createdAt']?.toString() ?? 'No createdAt',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['updatedAt']?.toString() ?? 'No updatedAt',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['ItemCategories']?.toString() ?? 'No categoryies',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
-                    // Text(
-                    //   itemData['ItemPictures']?.toString() ?? 'No pictures',
-                    //   style: TextStyle(fontSize: 16, color: Colors.white),
-                    // ),
                       ),
                     ),
                   ]
