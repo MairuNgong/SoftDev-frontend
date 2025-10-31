@@ -1,12 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/user_profile_model.dart';
+import 'package:frontend/widgets/profile/profile_grid_item.dart';
 
 class ProfileGrid extends StatelessWidget {
-  final List<String> images;
-  const ProfileGrid({super.key, required this.images});
+  final List<Item> items; // เปลี่ยนจาก List<String> เป็น List<Item>
+  final bool isAvailableTab;
+  final VoidCallback? onItemChanged; // เพิ่ม callback
+  
+  const ProfileGrid({
+    super.key, 
+    required this.items,
+    this.isAvailableTab = false,
+    this.onItemChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
-    if (images.isEmpty) {
+    if (items.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(48.0),
@@ -22,39 +32,21 @@ class ProfileGrid extends StatelessWidget {
       );
     }
 
-    // ✨ เปลี่ยนจาก SliverGrid เป็น GridView.builder
     return GridView.builder(
       padding: const EdgeInsets.all(1.0),
-      // gridDelegate ยังคงใช้ SliverGridDelegateWithFixedCrossAxisCount เหมือนเดิม
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
         mainAxisSpacing: 1,
         crossAxisSpacing: 1,
         childAspectRatio: 1,
       ),
-      itemCount: images.length, // 👈 บอกจำนวนไอเทม
-      itemBuilder: (context, index) { // 👈 สร้างไอเทมแต่ละชิ้น
-        final url = images[index];
-
-        return InkWell(
-          onTap: () {
-            // TODO: ไปหน้า detail ของโพสต์
-            print('Tapped on image: $url');
-          },
-          child: Image.network(
-            url,
-            fit: BoxFit.cover,
-            loadingBuilder: (context, child, progress) {
-              if (progress == null) return child;
-              return Container(color: Colors.grey.shade200);
-            },
-            errorBuilder: (context, error, stackTrace) {
-              return Container(
-                color: Colors.grey.shade200,
-                child: const Icon(Icons.broken_image_outlined, color: Colors.grey),
-              );
-            },
-          ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return ProfileGridItem(
+          item: item,
+          isAvailableTab: isAvailableTab,
+          onItemChanged: onItemChanged,
         );
       },
     );

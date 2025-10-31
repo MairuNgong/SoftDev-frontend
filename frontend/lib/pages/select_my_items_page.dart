@@ -114,12 +114,14 @@ class _SelectMyItemsPageState extends State<SelectMyItemsPage> {
                                 myItems: _selectedIds.map((id) {
                                   final item = profileResponse.availableItems.firstWhere((i) => i.id.toString() == id);
                                   return jsonEncode({
+                                    "id": item.id,
                                     "name": item.name ?? "ไม่ทราบชื่อ",
                                     "image": item.itemPictures.isNotEmpty ? item.itemPictures.first : null,
                                   });
                                 }).toList(),
                                 theirItems: [
                                   jsonEncode({
+                                    "id": int.tryParse(widget.targetItemId),
                                     "name": widget.targetItemName,
                                     "image": widget.targetImageUrl, // หรือดึงมาจาก API จริง
                                   })

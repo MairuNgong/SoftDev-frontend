@@ -141,7 +141,7 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                           builder: (context) => SelectMyItemsPage(
                             targetItemId: widget.targetItemId,
                             targetItemName: widget.targetItemName,
-                            ownerName: profile.name,
+                            ownerName: profile.email,
                             targetImageUrl: targetImage, // ✅ เพิ่มบรรทัดนี้
                           ),
                         ),

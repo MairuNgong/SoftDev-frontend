@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:frontend/models/transaction_model.dart';
-import 'package:frontend/models/user_profile_model.dart';
+import 'package:frontend/models/user_profile_model.dart' as profile;
 import '../models/login/storage_service.dart'; // <-- import storage service
 import 'dart:io'; // <-- import สำหรับใช้ File
 import 'package:path/path.dart' as p; // <-- import เพื่อเอาชื่อไฟล์
@@ -48,10 +48,10 @@ class ApiService {
   // ===================================
 
   /// ดึงข้อมูลโปรไฟล์ของผู้ใช้จากอีเมล
-  Future<ProfileResponse> getUserProfile(String email) async {
+  Future<profile.ProfileResponse> getUserProfile(String email) async {
     try {
       final response = await _dio.get('/users/profile/$email');
-      return ProfileResponse.fromJson(response.data);
+      return profile.ProfileResponse.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception('Failed to load user profile: ${e.message}');
     } catch (e) {
@@ -60,7 +60,7 @@ class ApiService {
   }
 
   /// อัปเดตโปรไฟล์ผู้ใช้ พร้อมอัปโหลดรูปภาพ
-  Future<UserProfile> updateUserProfile({
+  Future<profile.UserProfile> updateUserProfile({
     required Map<String, dynamic> userData,
     File? imageFile,
   }) async {
@@ -91,7 +91,7 @@ class ApiService {
       print('FormData fields: ${formData.fields}'); // ✨ Debug log
       
       final response = await _dio.put('/users', data: formData);
-      return UserProfile.fromJson(response.data);
+      return profile.UserProfile.fromJson(response.data);
     } on DioException catch (e) {
       print('DioException updating profile: ${e.response?.data}'); // ✨ Debug log
       throw Exception('Failed to update profile: ${e.message}');
@@ -236,16 +236,26 @@ class ApiService {
         data: payload,
       );
 
+      print("📩 Response ${response.statusCode}: ${response.data}");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         print("✅ Offer created successfully!");
-        print("📩 Response: ${response.data}");
       } else {
         throw Exception(
           'Failed to create offer. Server responded with status: ${response.statusCode}',
         );
       }
+    } on DioException catch (e) {
+      // ✅ เพิ่มส่วนแสดงข้อความจาก backend
+      print("❌ DioException while sending offer!");
+      print("🧾 Response status: ${e.response?.statusCode}");
+      print("🧾 Response data: ${e.response?.data}");
+      print("🧾 Request payload: ${jsonEncode(payload)}");
+      throw Exception(
+        'Failed to send offer request: ${e.response?.data ?? e.message}',
+      );
     } catch (e) {
-      print("❌ Error while sending offer: $e");
+      print("❌ Unexpected Error while sending offer: $e");
       throw Exception('Failed to send offer request: $e');
     }
   }
@@ -364,6 +374,79 @@ class ApiService {
     } catch (e) {
       print('⚠️ [UNEXPECTED ERROR] $e');
       throw Exception('Unexpected error during search: $e');
+    }
+  }
+
+  // ===================== ITEM MANAGEMENT =====================
+  
+  /// ดึงรายละเอียด Item ตาม ID
+  Future<profile.Item> getItemDetail(int itemId) async {
+    try {
+      final response = await _dio.get('/items/$itemId');
+      return profile.Item.fromJson(response.data);
+    } on DioException catch (e) {
+      throw Exception('Failed to load item detail: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+  /// ลบ Item ตาม ID
+  Future<void> deleteItem(int itemId) async {
+    try {
+      await _dio.delete('/items/$itemId');
+    } on DioException catch (e) {
+      throw Exception('Failed to delete item: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+  /// อัปเดต Item พร้อมรูปภาพหลายรูป
+  Future<profile.Item> updateItem({
+    required int itemId,
+    required Map<String, dynamic> itemData,
+    List<File>? imageFiles,
+  }) async {
+    try {
+      // แยก categoryNames ออกมาเพื่อจัดการแยก
+      final categoryNames = itemData['categoryNames'] as List<String>?;
+      final dataWithoutCategories = Map<String, dynamic>.from(itemData)..remove('categoryNames');
+      
+      final formData = FormData.fromMap(dataWithoutCategories);
+      
+      // เพิ่ม categoryNames แบบ array ให้ถูกต้อง
+      if (categoryNames != null && categoryNames.isNotEmpty) {
+        for (var category in categoryNames) {
+          formData.fields.add(MapEntry('categoryNames', category));
+        }
+      }
+      
+      // เพิ่มรูปภาพ (ใช้ ItemPicture แทน ItemPictures)
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        String fileName = p.basename(imageFiles.first.path);
+        formData.files.add(
+          MapEntry(
+            'ItemPicture',
+            await MultipartFile.fromFile(imageFiles.first.path, filename: fileName),
+          ),
+        );
+      }
+      
+      print('📤 [UPDATE ITEM] FormData fields: ${formData.fields}');
+      print('📤 [UPDATE ITEM] FormData files: ${formData.files.length} files');
+      
+      final response = await _dio.put('/items/$itemId', data: formData);
+      
+      print('📥 [UPDATE ITEM RESPONSE] ${response.statusCode}');
+      
+      return profile.Item.fromJson(response.data);
+    } on DioException catch (e) {
+      print('❌ [UPDATE ITEM ERROR] ${e.response?.data}');
+      throw Exception('Failed to update item: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      print('❌ [UPDATE ITEM UNKNOWN ERROR] $e');
+      throw Exception('An unknown error occurred: $e');
     }
   }
 }
