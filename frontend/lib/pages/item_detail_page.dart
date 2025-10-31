@@ -54,6 +54,7 @@ class _ItemDetailPageState extends State<ItemDetailPage> {
                     targetItemName: itemData['name'] ?? 'Unknown Item',
                     ownerEmail: itemData['ownerEmail'] ?? '',
                     initialSelectedItemId: itemData['id'].toString(),
+                    selectedTargetItems: const [],
                   ),
                 ),
               );
