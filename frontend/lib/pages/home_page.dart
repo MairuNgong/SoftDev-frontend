@@ -8,6 +8,7 @@ import 'package:frontend/services/api_service.dart';
 import 'package:frontend/widgets/home/swipe_card.dart';
 import '../models/login/storage_service.dart';
 import '../models/user_model.dart';
+import 'package:frontend/models/transaction_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -138,13 +139,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _checkAndFetchForYou(int remainingCount) {
-    const threshold = 9;
-    if (remainingCount <= threshold && !_isFetchingNextBatch) {
-      _fetchForYou(isRefetch: true); 
-    }
-  }
-
   void _handleLikeOffer(String likedItemJson) async {
     final likedItemData = jsonDecode(likedItemJson);
     final String likedItemId = likedItemData['id']?.toString() ?? 'unknown';
@@ -174,7 +168,6 @@ class _HomePageState extends State<HomePage> {
 
       final targetItemId =
           int.tryParse(selectedOfferItem['targetItemId'].toString()) ?? 0;
-      final userEmail = _user!.email;
 
       // ✅ payload ตาม format backend
       final payload = {
@@ -260,51 +253,57 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: _currentOption == 'FOR_YOU'
                           ? SwipeCard(  // For You
-                            items: forYouItems,
-                            key: ValueKey(forYouItems.length), 
-                            onStackFinishedCallback: () => _fetchForYou(isRefetch: true),
-                            onItemChangedCallback: (remainingCount) {
-                              const threshold = 9;
-                              if (remainingCount <= threshold && !_isFetchingNextBatch) {
-                                _fetchForYou(isRefetch: true); 
-                              }
-                            },
-                            onLikeAction: _handleLikeOffer,)
-                          : requestItems.isNotEmpty 
-                            ? SwipeCard(  // Request
-                              items: requestItems,
-                              key: ValueKey(requestItems.length),
-                              onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
+                              items: forYouItems,
+                              key: ValueKey(forYouItems.length), 
+                              onStackFinishedCallback: () => _fetchForYou(isRefetch: true),
                               onItemChangedCallback: (remainingCount) {
                                 const threshold = 9;
                                 if (remainingCount <= threshold && !_isFetchingNextBatch) {
-                                  _fetchRequest(isRefetch: true); 
+                                  _fetchForYou(isRefetch: true); 
                                 }
                               },
-                              onLikeAction: _handleAcceptOffer,)
+                              onLikeAction: _handleLikeOffer,
+                              onNopeAction: (itemJson) async {
+                                try {
+                                  final itemData = jsonDecode(itemJson);
+                                  final itemId = itemData['id']?.toString();
+                                  if (itemId != null && _user != null) {
+                                    await _apiService.postWatchedItems(_user!.email, itemId);
+                                  }
+                                } catch (e) {
+                                  print('Error posting watched item: $e');
+                                }
+                              },)
+                          : requestItems.isNotEmpty 
+                            ? SwipeCard(  // Request
+                                items: requestItems,
+                                key: ValueKey(requestItems.length),
+                                onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
+                                onItemChangedCallback: (remainingCount) {},
+                                onLikeAction: _handleAcceptOffer,)
                             : Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.import_export_outlined,
-                                    size: 80,
-                                    color: kThemeGreen.withValues(alpha: 50),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'No Request Found',
-                                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: kThemeGreen),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  const Text(
-                                    'Offer request from others will appear here.',
-                                    style: TextStyle(color: Colors.grey),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.import_export_outlined,
+                                      size: 80,
+                                      color: kThemeGreen.withValues(alpha: 50),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No Request Found',
+                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: kThemeGreen),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    const Text(
+                                      'Offer request from others will appear here.',
+                                      style: TextStyle(color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
                   ),
                   const SizedBox(height: 20),
                 ],
