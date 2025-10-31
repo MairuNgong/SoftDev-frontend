@@ -1,7 +1,9 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:frontend/models/user_profile_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/widgets/category_selection_modal.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditItemPage extends StatefulWidget {
   final Item item;
@@ -19,6 +21,7 @@ class _EditItemPageState extends State<EditItemPage> {
   final _descriptionController = TextEditingController();
   
   List<String> _selectedCategories = [];
+  File? _selectedImageFile; // รูปภาพใหม่ที่เลือก (แค่รูปเดียว)
   bool _isLoading = false;
 
   @override
@@ -37,6 +40,23 @@ class _EditItemPageState extends State<EditItemPage> {
     _priceRangeController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    
+    if (image != null) {
+      setState(() {
+        _selectedImageFile = File(image.path);
+      });
+    }
+  }
+
+  void _removeImage() {
+    setState(() {
+      _selectedImageFile = null;
+    });
   }
 
   void _openCategoryModal() async {
@@ -97,10 +117,11 @@ class _EditItemPageState extends State<EditItemPage> {
         throw Exception('Cannot edit item: Invalid item ID (${widget.item.id}). This item may have loading issues.');
       }
 
-      // เรียก API update item
+      // เรียก API update item พร้อมรูปภาพ
       await ApiService().updateItem(
         itemId: widget.item.id,
         itemData: itemData,
+        imageFiles: _selectedImageFile != null ? [_selectedImageFile!] : null,
       );
 
       if (mounted) {
@@ -258,7 +279,7 @@ class _EditItemPageState extends State<EditItemPage> {
               ),
               const SizedBox(height: 24),
 
-              // ข้อมูลเพิ่มเติม
+              // รูปภาพปัจจุบัน
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -305,11 +326,94 @@ class _EditItemPageState extends State<EditItemPage> {
                           },
                         ),
                       ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'Note: Image editing will be available in future updates',
-                      style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // รูปภาพใหม่ที่เลือก
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'New Image',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: _pickImage,
+                          icon: const Icon(Icons.add_photo_alternate, size: 20),
+                          label: const Text('Select Image'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF5B7C6E),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 8),
+                    if (_selectedImageFile == null)
+                      const Text(
+                        'No new image selected. Current images will be kept.',
+                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                      )
+                    else
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Image selected',
+                            style: TextStyle(color: Colors.green, fontSize: 12),
+                          ),
+                          const SizedBox(height: 8),
+                          Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImageFile!,
+                                  width: 150,
+                                  height: 150,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: _removeImage,
+                                  child: Container(
+                                    decoration: const BoxDecoration(
+                                      color: Colors.red,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Note: Selecting new image will replace all current images.',
+                            style: TextStyle(color: Colors.orange, fontSize: 12),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
