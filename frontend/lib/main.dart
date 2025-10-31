@@ -51,21 +51,26 @@ class _MyAppState extends State<MyApp> {
 
   /// Callback สำหรับเปลี่ยนสถานะเป็นล็อกเอาท์
   void _handleLogout() async {
+    print('[DEBUG] Logout started');
     try {
-      // ✨ 1. Sign out จาก Google ก่อน
+      print('[DEBUG] Signing out from Google...');
       await authService.signOutFromGoogle();
+      print('[DEBUG] Google sign out complete');
     } catch (e) {
-      // หากไม่สามารถ sign out จาก Google ได้ ให้ทำต่อไป
-      print("Google sign out failed: $e");
+      print("[DEBUG] Google sign out failed: $e");
     }
-    
-    // ✨ 2. เคลียร์ข้อมูลทั้งหมดใน Storage
+    print('[DEBUG] Deleting all user storage...');
     await UserStorageService().deleteAll();
+    print('[DEBUG] Storage deleted');
     authService.dispose();
+    print('[DEBUG] AuthService disposed');
     setState(() {
       _isLoggedIn = false;
+      print('[DEBUG] _isLoggedIn set to false');
       authService = AuthService(); // <-- Re-initialize after logout
+      print('[DEBUG] AuthService re-initialized');
     });
+    print('[DEBUG] Logout finished');
   }
 
   @override
