@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/services/api_service.dart';
+import 'package:frontend/models/login/storage_service.dart';
+import 'package:frontend/pages/main_page.dart';
 
 const Color kThemeGreen = Color(0xFF6D8469);
 const Color kThemeBackground = Color(0xFFF1EDF2);
@@ -85,7 +88,64 @@ class OfferSummaryPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-                  onPressed: onConfirm,
+                  onPressed: () async {
+                    final api = ApiService();
+                    final userStorage = UserStorageService();
+
+                    // ดึงข้อมูลผู้ใช้ปัจจุบัน
+                    final userString = await userStorage.readUserData();
+                    if (userString == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่")),
+                      );
+                      return;
+                    }
+
+                    final userData = jsonDecode(userString);
+                    final userEmail = userData["email"];
+
+                    // สร้าง payload
+                    final myItemIds = myItems.map((e) {
+                      final map = jsonDecode(e);
+                      return int.tryParse(map["id"]?.toString() ?? "0") ?? 0;
+                    }).where((id) => id > 0).toList();
+
+                    final theirItemIds = theirItems.map((e) {
+                      final map = jsonDecode(e);
+                      return int.tryParse(map["id"]?.toString() ?? "0") ?? 0;
+                    }).where((id) => id > 0).toList();
+
+                    final payload = {
+                      "accepterEmail": opponentName, // opponentName ตอนนี้ควรเป็นอีเมลแล้ว
+                      "offerItems": myItemIds.map((id) => id).toList(),
+                      "requestItems": theirItemIds.map((id) => id).toList(),
+                    };
+
+                    try {
+                      // 🔄 เรียก API
+                      print("🧾 DEBUG myItems: $myItems");
+                      print("🧾 DEBUG theirItems: $theirItems");
+                      print("🧾 DEBUG payload: ${jsonEncode(payload)}");
+                      await api.createOffer(payload);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text("🎉 ส่งข้อเสนอเรียบร้อยแล้ว!")),
+                      );
+
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => MainPage(
+                          onLogout: () async {}, // ✅ เพิ่ม callback ว่างๆ ไว้ก่อน
+                        ),
+                      ),
+                      (route) => false,
+                    );
+                    } catch (e) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text("❌ ส่งข้อเสนอไม่สำเร็จ: $e")),
+                      );
+                    }
+                  },
                 ),
               ),
             ),

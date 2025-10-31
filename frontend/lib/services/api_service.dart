@@ -214,16 +214,26 @@ class ApiService {
         data: payload,
       );
 
+      print("📩 Response ${response.statusCode}: ${response.data}");
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         print("✅ Offer created successfully!");
-        print("📩 Response: ${response.data}");
       } else {
         throw Exception(
           'Failed to create offer. Server responded with status: ${response.statusCode}',
         );
       }
+    } on DioException catch (e) {
+      // ✅ เพิ่มส่วนแสดงข้อความจาก backend
+      print("❌ DioException while sending offer!");
+      print("🧾 Response status: ${e.response?.statusCode}");
+      print("🧾 Response data: ${e.response?.data}");
+      print("🧾 Request payload: ${jsonEncode(payload)}");
+      throw Exception(
+        'Failed to send offer request: ${e.response?.data ?? e.message}',
+      );
     } catch (e) {
-      print("❌ Error while sending offer: $e");
+      print("❌ Unexpected Error while sending offer: $e");
       throw Exception('Failed to send offer request: $e');
     }
   }
