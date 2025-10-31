@@ -1,4 +1,5 @@
 // file: models/transaction_model.dart
+import 'package:collection/collection.dart';
 
 // Model ตัวที่ 3 (ในสุด): สำหรับข้อมูล Item
 class Item {
@@ -90,4 +91,40 @@ class Transaction {
       tradeItems: parsedTradeItems,
     );
   }
+
+  Map<String, dynamic> toCardJson(String currentUserEmail) {
+    if (tradeItems.isEmpty) return {};
+    final itemToReceiveTradeItem = tradeItems.firstWhereOrNull(
+      (ti) => ti.item.ownerEmail != currentUserEmail,
+    );
+
+    if (itemToReceiveTradeItem == null) {
+      return {}; 
+    }
+
+    final Item itemToReceive = itemToReceiveTradeItem.item;
+    final bool isCurrentUserTheOfferer = offerEmail == currentUserEmail;
+    final String otherPartyEmail = isCurrentUserTheOfferer ? accepterEmail : offerEmail;
+    final double? otherPartyRating = isCurrentUserTheOfferer ? accepterRating : offererRating;
+
+    return {
+      'transactionId': id,
+      'status': status,
+      
+      // Other Party's details
+      'otherPartyEmail': otherPartyEmail,        // New key for the other user's email
+      'otherPartyRating': otherPartyRating,      // New key for the other user's rating
+
+      // Received Item details (used for display on the card)
+      'id': itemToReceive.id,
+      'name': itemToReceive.name,
+      'description': itemToReceive.description,
+      // The swipe card uses these specific keys for pictures and categories
+      'ItemPictures': itemToReceive.itemPictures,
+      'ItemCategories': itemToReceive.itemCategories,
+
+      'ownerRatingScore': itemToReceive.ownerRatingScore,
+    };
+  }
 }
+

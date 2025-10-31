@@ -194,11 +194,33 @@ class ApiService {
         '/transactions/get_offer',
         queryParameters: {'email': email}
       );
-      final List<dynamic> jsonList = response.data['items'] ?? [];
-      List<String> items = jsonList.map((item) => item.toString()).toList();
+      final List<dynamic> jsonList = response.data['transactions'] ?? [];
+      List<Transaction> transactions = jsonList.map((json) => Transaction.fromJson(json)).toList();
+      List<String> items = transactions
+        .map((t) => jsonEncode(t.toCardJson(email)))
+        .toList();
+      items.removeWhere((itemJson) => itemJson == '{}');
       return items;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "Request" items: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred: $e');
+    }
+  }
+
+  Future<void> postWatchedItems(String email, String itemId) async {
+    try {
+      final body = {
+        "itemId": itemId,
+      };
+      final response = await _dio.post(
+        '/watched',
+        queryParameters: {'email': email},
+        data: body,
+      );
+      print('Response: ${response.statusCode} - ${response.data}');
+    } on DioException catch (e) {
+      throw Exception('Failed to submit watched item: ${e.response?.data['message'] ?? e.message}');
     } catch (e) {
       throw Exception('An unknown error occurred: $e');
     }

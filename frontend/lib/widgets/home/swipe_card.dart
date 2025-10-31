@@ -3,10 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:swipe_cards/swipe_cards.dart';
 
 class SwipeCard extends StatefulWidget {
-  final List<String> items;
+  final List<dynamic> items;
   final VoidCallback onStackFinishedCallback;
   final void Function(int remainingCount) onItemChangedCallback;
   final void Function(String itemJson) onLikeAction;
+  final void Function(String itemJson)? onNopeAction;
 
   const SwipeCard({
     super.key, 
@@ -14,6 +15,7 @@ class SwipeCard extends StatefulWidget {
     required this.onStackFinishedCallback,
     required this.onItemChangedCallback,
     required this.onLikeAction,
+    this.onNopeAction,
   });
 
   @override
@@ -36,15 +38,33 @@ class _SwipeCardState extends State<SwipeCard> {
     return SwipeItem(
       content: content,
       likeAction: () { widget.onLikeAction(content); },
-      nopeAction: () { print("Nope $content"); },
+      nopeAction: () {
+        if (widget.onNopeAction != null) {
+          widget.onNopeAction!(content);
+        } else {
+          print("Nope $content");
+        }
+      },
     );
   }
 
-  void _initializeSwipeItems(List<String> items) {
+  void _initializeSwipeItems(List<dynamic> items) {
     _swipeItems.clear(); 
     for (var item in items) {
       _swipeItems.add(_createSwipeItem(item));
     }
+  }
+
+  String _getDisplayEmail(Map<String, dynamic> itemData) {
+    if (itemData.containsKey('otherPartyEmail')) {
+    return itemData['otherPartyEmail']?.toString() ?? 'N/A';
+    }
+    return itemData['ownerEmail']?.toString() ?? 'N/A';
+  }
+
+  String _getDisplayRating(Map<String, dynamic> itemData) {
+    final rating = itemData['ownerRatingScore'] as num?;
+    return 'Rating: ${rating?.toStringAsFixed(1) ?? 'N/A'}';
   }
 
   Widget _DescriptionText({required String text}) {
@@ -79,6 +99,9 @@ class _SwipeCardState extends State<SwipeCard> {
                     )
                   );
               }
+
+              // 🟢 DEBUG CHECK: Check if this is a 'Request' item (it should have transactionId)
+              final bool isRequestItem = itemData.containsKey('transactionId');
 
               return Card(
                 margin: const EdgeInsets.all(0.0),
@@ -153,7 +176,7 @@ class _SwipeCardState extends State<SwipeCard> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        'Owner: ${itemData['ownerEmail']?.toString() ?? 'N/A'}',
+                                        'Owner: ${_getDisplayEmail(itemData)}',
                                         style: const TextStyle(fontSize: 14, color: Colors.white54),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1,
@@ -162,7 +185,7 @@ class _SwipeCardState extends State<SwipeCard> {
                                     const SizedBox(height: 8),
                                     Expanded(
                                       child: Text(
-                                        'Owner Rating: ${itemData['ownerRatingScore']?.toString() ?? 'N/A'}',
+                                        _getDisplayRating(itemData),
                                         textAlign: TextAlign.right,
                                         style: const TextStyle(fontSize: 14, color: Colors.white54),
                                         overflow: TextOverflow.ellipsis,
@@ -175,6 +198,26 @@ class _SwipeCardState extends State<SwipeCard> {
                             )
                       ),
                     ),
+
+                    // 🟢 NEW DEBUG OVERLAY: Show raw data for Request Items
+                    // if (isRequestItem) 
+                    //     Positioned(
+                    //       top: 10,
+                    //       left: 10,
+                    //       right: 10,
+                    //       child: Container(
+                    //         padding: const EdgeInsets.all(8),
+                    //         decoration: BoxDecoration(
+                    //           color: Colors.black.withOpacity(0.6),
+                    //           borderRadius: BorderRadius.circular(5),
+                    //         ),
+                    //         child: Text(
+                    //           // Convert the map back to a nicely formatted JSON string
+                    //           const JsonEncoder.withIndent(' ').convert(itemData),
+                    //           style: const TextStyle(color: Colors.white, fontSize: 10),
+                    //         ),
+                    //       ),
+                    // ),
                   ]
               
                 ),
