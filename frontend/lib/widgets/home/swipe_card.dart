@@ -200,24 +200,24 @@ class _SwipeCardState extends State<SwipeCard> {
                     ),
 
                     // 🟢 NEW DEBUG OVERLAY: Show raw data for Request Items
-                    // if (isRequestItem) 
-                    //     Positioned(
-                    //       top: 10,
-                    //       left: 10,
-                    //       right: 10,
-                    //       child: Container(
-                    //         padding: const EdgeInsets.all(8),
-                    //         decoration: BoxDecoration(
-                    //           color: Colors.black.withOpacity(0.6),
-                    //           borderRadius: BorderRadius.circular(5),
-                    //         ),
-                    //         child: Text(
-                    //           // Convert the map back to a nicely formatted JSON string
-                    //           const JsonEncoder.withIndent(' ').convert(itemData),
-                    //           style: const TextStyle(color: Colors.white, fontSize: 10),
-                    //         ),
-                    //       ),
-                    // ),
+                    if (isRequestItem) 
+                        Positioned(
+                          top: 10,
+                          left: 10,
+                          right: 10,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.6),
+                              borderRadius: BorderRadius.circular(5),
+                            ),
+                            child: Text(
+                              // Convert the map back to a nicely formatted JSON string
+                              const JsonEncoder.withIndent(' ').convert(itemData),
+                              style: const TextStyle(color: Colors.white, fontSize: 10),
+                            ),
+                          ),
+                    ),
                   ]
               
                 ),

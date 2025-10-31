@@ -145,6 +145,8 @@ class _HomePageState extends State<HomePage> {
     final String likedItemName = likedItemData['name'] ?? 'Unknown Item';
     final String ownerEmail = likedItemData['ownerEmail'] ?? '';
 
+    final int itemIndex = forYouItems.indexOf(likedItemJson);
+
     // เปิดหน้า OfferCreationPage
     final selectedOfferItem = await Navigator.of(context).push(
       MaterialPageRoute(
@@ -183,6 +185,11 @@ class _HomePageState extends State<HomePage> {
       try {
         await _apiService.createOffer(payload);
         if (mounted) {
+          if (itemIndex != -1) {
+            setState(() {
+              forYouItems.removeAt(itemIndex);
+            });
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Offer successfully created!')),
           );
@@ -200,9 +207,9 @@ class _HomePageState extends State<HomePage> {
   }
 
 
-  void _handleAcceptOffer(String likedItemJson){
-    final likedItemData = jsonDecode(likedItemJson);
-    final String likedItemId = likedItemData['id']?.toString() ?? 'unknown';
+  void _handleAcceptOffer(String itemJson) async {
+    final itemData = jsonDecode(itemJson);
+    final String? transactionId = itemData['transactionId'] as String?;
   }
 
   @override
@@ -269,6 +276,12 @@ class _HomePageState extends State<HomePage> {
                                   final itemId = itemData['id']?.toString();
                                   if (itemId != null && _user != null) {
                                     await _apiService.postWatchedItems(_user!.email, itemId);
+                                    final int itemIndex = forYouItems.indexOf(itemJson);
+                                    if (itemIndex != -1) {
+                                      setState(() {
+                                        forYouItems.removeAt(itemIndex);
+                                      });
+                                    }
                                   }
                                 } catch (e) {
                                   print('Error posting watched item: $e');
@@ -280,7 +293,8 @@ class _HomePageState extends State<HomePage> {
                                 key: ValueKey(requestItems.length),
                                 onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
                                 onItemChangedCallback: (remainingCount) {},
-                                onLikeAction: _handleAcceptOffer,)
+                                onLikeAction: _handleAcceptOffer,
+                                onNopeAction: null,)
                             : Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
