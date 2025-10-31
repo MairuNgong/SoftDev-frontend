@@ -449,4 +449,27 @@ class ApiService {
       throw Exception('An unknown error occurred: $e');
     }
   }
+
+  
+  Future<void> cancelTransaction(int transactionId) async {
+  try {
+    print("🟥 Cancelling transaction ID: $transactionId");
+
+    final response = await _dio.put(
+      '/transactions/cancel',
+      data: {"transactionId": transactionId.toString()},
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      print("✅ Transaction cancelled successfully");
+    } else {
+      throw Exception("Failed to cancel transaction: ${response.statusCode}");
+    }
+  } on DioException catch (e) {
+    print("❌ DioException cancelling transaction: ${e.response?.data ?? e.message}");
+    throw Exception('Cancel transaction failed: ${e.response?.data ?? e.message}');
+  } catch (e) {
+    throw Exception('Unexpected error cancelling transaction: $e');
+  }
+}
 }

@@ -153,6 +153,7 @@ class _HomePageState extends State<HomePage> {
           targetItemName: likedItemName,
           ownerEmail: ownerEmail,
           initialSelectedItemId: likedItemId,
+          selectedTargetItems: const <Map<String, dynamic>>[],
         ),
       ),
     );

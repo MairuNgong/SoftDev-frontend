@@ -16,6 +16,8 @@ class SelectMyItemsPage extends StatefulWidget {
   final String targetItemName;
   final String ownerName;
   final String targetImageUrl;
+  final List<Map<String, dynamic>> targetItems;
+  final String ownerEmail;
   
   const SelectMyItemsPage({
     super.key,
@@ -23,6 +25,8 @@ class SelectMyItemsPage extends StatefulWidget {
     required this.targetItemName,
     required this.ownerName,
     required this.targetImageUrl,
+    required this.targetItems,
+    required this.ownerEmail
     });
 
   @override
@@ -113,20 +117,15 @@ class _SelectMyItemsPageState extends State<SelectMyItemsPage> {
                               builder: (_) => OfferSummaryPage(
                                 myItems: _selectedIds.map((id) {
                                   final item = profileResponse.availableItems.firstWhere((i) => i.id.toString() == id);
-                                  return jsonEncode({
+                                  return {
                                     "id": item.id,
                                     "name": item.name ?? "ไม่ทราบชื่อ",
                                     "image": item.itemPictures.isNotEmpty ? item.itemPictures.first : null,
-                                  });
+                                  };
                                 }).toList(),
-                                theirItems: [
-                                  jsonEncode({
-                                    "id": int.tryParse(widget.targetItemId),
-                                    "name": widget.targetItemName,
-                                    "image": widget.targetImageUrl, // หรือดึงมาจาก API จริง
-                                  })
-                                ],
+                                theirItems: widget.targetItems,
                                 opponentName: widget.ownerName,
+                                opponentEmail: widget.ownerEmail,
                                 onConfirm: () {
                                   Navigator.pop(context);
                                 },

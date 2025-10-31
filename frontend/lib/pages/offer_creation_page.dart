@@ -16,13 +16,15 @@ class OfferCreationPage extends StatefulWidget {
   final String targetItemName;
   final String ownerEmail;
   final String? initialSelectedItemId;
+  final List<Map<String, dynamic>> selectedTargetItems;
 
-  const OfferCreationPage({
+  OfferCreationPage({
     super.key,
     required this.targetItemId,
     required this.targetItemName,
     required this.ownerEmail,
     this.initialSelectedItemId,
+    required this.selectedTargetItems
   });
 
   @override
@@ -102,8 +104,16 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                           })
                       .toList(),
                   initialSelectedUrls: {
-                    // ให้ติ๊ก item ที่มาจากหน้า Home
                     if (widget.initialSelectedItemId != null) widget.initialSelectedItemId!,
+                  },
+                  onSelectionChanged: (selected) {
+                    setState(() {
+                      _selectedItemIds
+                        ..clear()
+                        ..addAll(selected.map((e) => int.parse(e)));
+                    });
+
+                    print("🟢 DEBUG currently selected IDs: $_selectedItemIds");
                   },
                 ),
               ),
@@ -124,37 +134,47 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     onPressed: () async {
-                      // ✅ หาไอเท็มที่ปัดจาก ownerProfile (มีรูปจริงแน่นอน)
-                      final targetItem = profileResponse.availableItems.firstWhere(
-                        (i) => i.id.toString() == widget.targetItemId,
-                        orElse: () => profileResponse.availableItems.first,
+                    print("📦 DEBUG selected IDs: $_selectedItemIds");
+                    print("📋 Available IDs: ${profileResponse.availableItems.map((i) => i.id).toList()}");
+
+                    // ✅ แปลงรายการที่เลือกไว้เป็น list ของ Map และป้องกัน crash
+                    final selectedTargetItems = _selectedItemIds.map((id) {
+                      final item = profileResponse.availableItems.firstWhere(
+                        (i) => i.id == id,
+                        orElse: () {
+                          print("⚠️ WARN: item id=$id not found in availableItems");
+                          return profileResponse.availableItems.first;
+                        },
                       );
+                      return {
+                        "id": item.id,
+                        "name": item.name ?? "ไม่ทราบชื่อ",
+                        "image": item.itemPictures.isNotEmpty ? item.itemPictures.first : null,
+                      };
+                    }).toList();
 
-                      final targetImage = targetItem.itemPictures.isNotEmpty
-                          ? targetItem.itemPictures.first
-                          : 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
+                    print("✅ Selected Target Items ↓↓↓");
+                    for (final item in selectedTargetItems) {
+                      print("- ${item['id']} | ${item['name']} | ${item['image']}");
+                    }
 
-                      // 🟢 ไปหน้าเลือกของของเรา พร้อมส่งรูปเป้าหมายไปด้วย
-                      final selectedMyItems = await Navigator.push<List<String>>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => SelectMyItemsPage(
-                            targetItemId: widget.targetItemId,
-                            targetItemName: widget.targetItemName,
-                            ownerName: profile.email,
-                            targetImageUrl: targetImage, // ✅ เพิ่มบรรทัดนี้
-                          ),
+                    // 🟢 ไปหน้าเลือกของของเรา พร้อมส่งหลาย item ไปด้วย
+                    final selectedMyItems = await Navigator.push<List<Map<String, dynamic>>>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => SelectMyItemsPage(
+                          targetItems: selectedTargetItems,
+                          targetItemId: widget.targetItemId,
+                          targetItemName: widget.targetItemName,
+                          ownerName: profile.name,
+                          targetImageUrl: selectedTargetItems.isNotEmpty
+                            ? (selectedTargetItems.first["image"]?.toString() ?? "")
+                            : "", // ✅ ป้องกัน Bad state
+                          ownerEmail: profile.email ?? "",
                         ),
-                      );
-
-                      if (selectedMyItems != null && selectedMyItems.isNotEmpty) {
-                        Navigator.pop(context, {
-                          'targetItemId': widget.targetItemId,
-                          'targetItemName': widget.targetItemName,
-                          'selectedItems': selectedMyItems,
-                        });
-                      }
-                    },
+                      ),
+                    );
+                  },
                   ),
                 ),
               ),

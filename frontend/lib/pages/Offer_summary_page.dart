@@ -9,9 +9,10 @@ const Color kThemeBackground = Color(0xFFF1EDF2);
 const Color kPrimaryTextColor = Color(0xFF3D423C);
 
 class OfferSummaryPage extends StatelessWidget {
-  final List<String> myItems; // [{"name": "หนังสือ", "image": "https://..."}]
-  final List<String> theirItems; // เช่นเดียวกัน
+  final List<dynamic> myItems; // [{"name": "หนังสือ", "image": "https://..."}]
+  final List<dynamic> theirItems; // เช่นเดียวกัน
   final String opponentName;
+  final String opponentEmail;
   final VoidCallback onConfirm;
 
   const OfferSummaryPage({
@@ -19,6 +20,7 @@ class OfferSummaryPage extends StatelessWidget {
     required this.myItems,
     required this.theirItems,
     required this.opponentName,
+    required this.opponentEmail,
     required this.onConfirm,
   });
 
@@ -106,17 +108,17 @@ class OfferSummaryPage extends StatelessWidget {
 
                     // สร้าง payload
                     final myItemIds = myItems.map((e) {
-                      final map = jsonDecode(e);
+                      final map = (e is Map<String, dynamic>) ? e : jsonDecode(e);
                       return int.tryParse(map["id"]?.toString() ?? "0") ?? 0;
                     }).where((id) => id > 0).toList();
 
                     final theirItemIds = theirItems.map((e) {
-                      final map = jsonDecode(e);
+                      final map = (e is Map<String, dynamic>) ? e : jsonDecode(e);
                       return int.tryParse(map["id"]?.toString() ?? "0") ?? 0;
                     }).where((id) => id > 0).toList();
 
                     final payload = {
-                      "accepterEmail": opponentName, // opponentName ตอนนี้ควรเป็นอีเมลแล้ว
+                      "accepterEmail": opponentEmail, // opponentName ตอนนี้ควรเป็นอีเมลแล้ว
                       "offerItems": myItemIds.map((id) => id).toList(),
                       "requestItems": theirItemIds.map((id) => id).toList(),
                     };
@@ -195,7 +197,7 @@ class OfferSummaryPage extends StatelessWidget {
   }
 
   /// 🧩 แสดงชื่อ + รูปของแต่ละ item
-  Widget _buildItemList(List<String> items, BuildContext context) {
+  Widget _buildItemList(List<dynamic> items, BuildContext context) {
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(vertical: 8.0),
@@ -206,12 +208,7 @@ class OfferSummaryPage extends StatelessWidget {
     return Column(
       children: items.map((itemStr) {
         // แปลง string → Map
-        Map<String, dynamic> item;
-        try {
-          item = jsonDecode(itemStr);
-        } catch (_) {
-          item = {"name": itemStr, "image": null};
-        }
+        final Map<String, dynamic> item = (itemStr is Map<String, dynamic>) ? itemStr : jsonDecode(itemStr);
 
         final String name = item["name"] ?? "ไม่ทราบชื่อ";
         final String? imageUrl = item["image"];
