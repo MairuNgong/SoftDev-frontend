@@ -18,22 +18,109 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
 
   late TextEditingController _nameController;
-  late TextEditingController _locationController;
   late TextEditingController _bioController;
-  // ✨ 1. เพิ่ม Controller สำหรับ Contact
   late TextEditingController _contactController;
 
+  String? _selectedProvince;
   File? _selectedImageFile;
   bool _isLoading = false;
+
+  // รายชื่อจังหวัดในประเทศไทย (ภาษาอังกฤษ)
+  final List<String> _thailandProvinces = [
+    'Bangkok',
+    'Amnat Charoen',
+    'Ang Thong',
+    'Bueng Kan',
+    'Buriram',
+    'Chachoengsao',
+    'Chai Nat',
+    'Chaiyaphum',
+    'Chanthaburi',
+    'Chiang Mai',
+    'Chiang Rai',
+    'Chonburi',
+    'Chumphon',
+    'Kalasin',
+    'Kamphaeng Phet',
+    'Kanchanaburi',
+    'Khon Kaen',
+    'Krabi',
+    'Lampang',
+    'Lamphun',
+    'Loei',
+    'Lopburi',
+    'Mae Hong Son',
+    'Maha Sarakham',
+    'Mukdahan',
+    'Nakhon Nayok',
+    'Nakhon Pathom',
+    'Nakhon Phanom',
+    'Nakhon Ratchasima',
+    'Nakhon Sawan',
+    'Nakhon Si Thammarat',
+    'Nan',
+    'Narathiwat',
+    'Nongbua Lamphu',
+    'Nong Khai',
+    'Nonthaburi',
+    'Pathum Thani',
+    'Pattani',
+    'Phang Nga',
+    'Phatthalung',
+    'Phayao',
+    'Phetchabun',
+    'Phetchaburi',
+    'Phichit',
+    'Phitsanulok',
+    'Phrae',
+    'Phuket',
+    'Prachinburi',
+    'Prachuap Khiri Khan',
+    'Ranong',
+    'Ratchaburi',
+    'Rayong',
+    'Roi Et',
+    'Sa Kaeo',
+    'Sakon Nakhon',
+    'Samut Prakan',
+    'Samut Sakhon',
+    'Samut Songkhram',
+    'Saraburi',
+    'Satun',
+    'Sing Buri',
+    'Sisaket',
+    'Songkhla',
+    'Sukhothai',
+    'Suphan Buri',
+    'Surat Thani',
+    'Surin',
+    'Tak',
+    'Trang',
+    'Trat',
+    'Ubon Ratchathani',
+    'Udon Thani',
+    'Uthai Thani',
+    'Uttaradit',
+    'Yala',
+    'Yasothon',
+  ];
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.currentUserProfile.name);
-    _locationController = TextEditingController(text: widget.currentUserProfile.location);
     _bioController = TextEditingController(text: widget.currentUserProfile.bio);
-    // ✨ 2. กำหนดค่าเริ่มต้นให้กับ Contact Controller
     _contactController = TextEditingController(text: widget.currentUserProfile.contact);
+    
+    // ตั้งค่าจังหวัดเริ่มต้น - ถ้าไม่มีข้อมูลหรือไม่อยู่ใน list ให้ใช้ Bangkok
+    final userLocation = widget.currentUserProfile.location;
+    if (userLocation != null && 
+        userLocation.isNotEmpty && 
+        _thailandProvinces.contains(userLocation)) {
+      _selectedProvince = userLocation;
+    } else {
+      _selectedProvince = 'Bangkok';
+    }
   }
 
   Future<void> _pickImage() async {
@@ -60,13 +147,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
       setState(() => _isLoading = true);
 
       try {
-        // ✨ 3. เพิ่ม Contact และ Categories เข้าไปในข้อมูลที่จะส่ง
+        // ตรวจสอบว่าเลือกจังหวัดแล้วหรือยัง
+        if (_selectedProvince == null || _selectedProvince!.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Please select a province"),
+              backgroundColor: Colors.orange,
+            ),
+          );
+          setState(() => _isLoading = false);
+          return;
+        }
+
         final userData = {
           'name': _nameController.text,
-          'Location': _locationController.text,
+          'Location': _selectedProvince!, // ใช้จังหวัดที่เลือก
           'Bio': _bioController.text,
           'Contact': _contactController.text,
-          // ✨ เพิ่ม categories เดิมไปด้วยเพื่อไม่ให้หาย
           'categoryNames': widget.currentUserProfile.interestedCategories,
         };
 
@@ -158,9 +255,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         validator: (v) => (v == null || v.trim().isEmpty) ? "Please enter your name" : null,
                       ),
                       const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(labelText: "Location"),
+                      DropdownButtonFormField<String>(
+                        value: _selectedProvince,
+                        decoration: const InputDecoration(
+                          labelText: "Province",
+                          border: OutlineInputBorder(),
+                        ),
+                        items: _thailandProvinces.map((province) {
+                          return DropdownMenuItem(
+                            value: province,
+                            child: Text(province),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            _selectedProvince = value;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return "Please select a province";
+                          }
+                          return null;
+                        },
+                        isExpanded: true, // ป้องกันปัญหา overflow
                       ),
                       const SizedBox(height: 16),
                       TextFormField(

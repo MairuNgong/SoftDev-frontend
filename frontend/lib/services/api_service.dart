@@ -380,18 +380,50 @@ class ApiService {
     }
   }
 
-  /// อัปเดต Item
+  /// อัปเดต Item พร้อมรูปภาพหลายรูป
   Future<profile.Item> updateItem({
     required int itemId,
     required Map<String, dynamic> itemData,
+    List<File>? imageFiles,
   }) async {
     try {
-      final formData = FormData.fromMap(itemData);
+      // แยก categoryNames ออกมาเพื่อจัดการแยก
+      final categoryNames = itemData['categoryNames'] as List<String>?;
+      final dataWithoutCategories = Map<String, dynamic>.from(itemData)..remove('categoryNames');
+      
+      final formData = FormData.fromMap(dataWithoutCategories);
+      
+      // เพิ่ม categoryNames แบบ array ให้ถูกต้อง
+      if (categoryNames != null && categoryNames.isNotEmpty) {
+        for (var category in categoryNames) {
+          formData.fields.add(MapEntry('categoryNames', category));
+        }
+      }
+      
+      // เพิ่มรูปภาพ (ใช้ ItemPicture แทน ItemPictures)
+      if (imageFiles != null && imageFiles.isNotEmpty) {
+        String fileName = p.basename(imageFiles.first.path);
+        formData.files.add(
+          MapEntry(
+            'ItemPicture',
+            await MultipartFile.fromFile(imageFiles.first.path, filename: fileName),
+          ),
+        );
+      }
+      
+      print('📤 [UPDATE ITEM] FormData fields: ${formData.fields}');
+      print('📤 [UPDATE ITEM] FormData files: ${formData.files.length} files');
+      
       final response = await _dio.put('/items/$itemId', data: formData);
+      
+      print('📥 [UPDATE ITEM RESPONSE] ${response.statusCode}');
+      
       return profile.Item.fromJson(response.data);
     } on DioException catch (e) {
+      print('❌ [UPDATE ITEM ERROR] ${e.response?.data}');
       throw Exception('Failed to update item: ${e.response?.data ?? e.message}');
     } catch (e) {
+      print('❌ [UPDATE ITEM UNKNOWN ERROR] $e');
       throw Exception('An unknown error occurred: $e');
     }
   }
