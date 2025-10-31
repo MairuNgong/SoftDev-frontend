@@ -208,7 +208,7 @@ class _SwipeCardState extends State<SwipeCard> {
                     //       child: Container(
                     //         padding: const EdgeInsets.all(8),
                     //         decoration: BoxDecoration(
-                    //           color: Colors.black.withOpacity(0.6),
+                    //           color: Colors.black.withValues(alpha: 0.6),
                     //           borderRadius: BorderRadius.circular(5),
                     //         ),
                     //         child: Text(
