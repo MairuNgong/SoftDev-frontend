@@ -8,7 +8,6 @@ import 'package:frontend/services/api_service.dart';
 import 'package:frontend/widgets/home/swipe_card.dart';
 import '../models/login/storage_service.dart';
 import '../models/user_model.dart';
-import 'package:frontend/models/transaction_model.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -238,6 +237,7 @@ class _HomePageState extends State<HomePage> {
                         textColor: _currentOption == 'REQUEST'
                             ? Color.fromARGB(255, 184, 124, 76)
                             : Color.fromARGB(255, 235, 217, 209),
+                        showBadge: requestItems.isNotEmpty,
                       ),
                       Container(
                         height: 20,
@@ -335,16 +335,39 @@ class OptionPage extends StatelessWidget {
     required this.title,
     required this.onPressed,
     this.textColor = const Color.fromARGB(255, 184, 124, 76),
+    this.showBadge = false,
   });
   final String title;
   final VoidCallback onPressed;
   final Color textColor;
+  final bool showBadge;
 
   @override
   Widget build(BuildContext context) {
     return TextButton(
       onPressed: onPressed,
-      child: Text(title, style: TextStyle(color: textColor, fontSize: 15)),
+      child: Stack(
+        clipBehavior: Clip.none, // Allows the badge to go outside the Stack's bounds
+        children: [
+          Text(
+            title, 
+            style: TextStyle(color: textColor, fontSize: 15)
+          ),
+          if (showBadge)
+            Positioned(
+              right: -10,
+              top: 0,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
