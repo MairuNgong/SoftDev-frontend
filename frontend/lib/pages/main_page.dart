@@ -4,6 +4,7 @@ import 'package:frontend/pages/history_page.dart';
 import 'package:frontend/pages/home_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/search_page.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 
 class MainPage extends StatefulWidget {
@@ -55,8 +56,17 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        // title: const Text('App'),
+        backgroundColor: const Color(0xFF748873),
+        title: Text(
+          'TWINDER',
+          style: GoogleFonts.marcellusSc(   // ✅ ใช้ฟอนต์ Marcellus SC
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.5,
+          ),
+        ),
+        centerTitle: true, 
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
