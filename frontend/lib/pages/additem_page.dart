@@ -74,7 +74,7 @@ class _AddItemPageState extends State<AddItemPage> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("✅ Item added successfully!")),
+        const SnackBar(content: Text("Item added successfully!")),
       );
       // ✨ ส่งสัญญาณกลับว่า add item สำเร็จ
       Navigator.pop(context, true);
