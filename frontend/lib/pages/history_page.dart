@@ -153,7 +153,7 @@ class TransactionCard extends StatelessWidget {
 
     // ✨ 6. สร้าง Logic สำหรับตรวจสอบว่าจะแสดงปุ่ม Rate หรือไม่
     final String status = transaction.status.toLowerCase();
-    final bool isCompletedOrCancelled = status == 'complete' || status == 'cancelled';
+    final bool isCompletedOrCancelled = status == 'complete';
     final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
     final bool hasRated = isCurrentUserOfferer
         ? transaction.accepterRating != null  // ถ้าฉันเป็น Offerer, ให้เช็คว่า Accepter มีคะแนนหรือยัง
@@ -316,7 +316,7 @@ class TransactionCard extends StatelessWidget {
     if (items.isEmpty) {
       return const Padding(
         padding: EdgeInsets.only(left: 28.0),
-        child: Text('Nothing', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
+        child: Text('Deleted Item', style: TextStyle(fontStyle: FontStyle.italic, color: Colors.grey)),
       );
     }
     return Padding(
