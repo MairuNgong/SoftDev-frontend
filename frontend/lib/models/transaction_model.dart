@@ -58,6 +58,8 @@ class Transaction {
   final String offerEmail;
   final String accepterEmail;
   final String status;
+  final bool? isOffererConfirm;
+  final bool? isAccepterConfirm;
   final double? offererRating;  // ADDED: เพิ่ม offererRating (อาจเป็น null)
   final double? accepterRating; // ADDED: เพิ่ม accepterRating (อาจเป็น null)
   final DateTime updatedAt;
@@ -70,6 +72,8 @@ class Transaction {
     required this.status,
     this.offererRating,           // ADDED
     this.accepterRating,          // ADDED
+    this.isOffererConfirm,        
+    this.isAccepterConfirm,
     required this.updatedAt,
     required this.tradeItems,
   });
@@ -83,12 +87,15 @@ class Transaction {
       id: json['id'],
       offerEmail: json['offerEmail'],
       accepterEmail: json['accepterEmail'],
+      isOffererConfirm: json['isOffererConfirm'],   // ✅ เพิ่ม
+      isAccepterConfirm: json['isAccepterConfirm'],
       status: json['status'],
       // ADDED: แปลงเป็น double และป้องกันค่า null
       offererRating: (json['offererRating'] as num?)?.toDouble(),
       accepterRating: (json['accepterRating'] as num?)?.toDouble(),
       updatedAt: DateTime.parse(json['updatedAt']),
       tradeItems: parsedTradeItems,
+      
     );
   }
 

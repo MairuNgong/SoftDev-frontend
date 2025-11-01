@@ -138,6 +138,8 @@ class TransactionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     // ✨ ตรวจสอบว่าเราเป็นคนที่ offer หรือไม่
     final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
+    final bool isOffererConfirmed = transaction.isOffererConfirm ?? false;
+    final bool isAccepterConfirmed = transaction.isAccepterConfirm ?? false;
     
     final myItems = transaction.tradeItems
         .where((trade) => trade.item.ownerEmail == currentUserEmail)
@@ -230,48 +232,104 @@ class TransactionCard extends StatelessWidget {
               ),
 
               if (status == 'offering' || status == 'matching')
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Cancel Offer?"),
-                          content: const Text("Are you sure you want to cancel this trade?"),
-                          actions: [
-                            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
-                            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
-                          ],
-                        ),
-                      );
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // 🔴 ปุ่ม Cancel
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Cancel Offer?"),
+                                content: const Text("Are you sure you want to cancel this trade?"),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("No")),
+                                  TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("Yes")),
+                                ],
+                              ),
+                            );
 
-                      if (confirm == true) {
-                        try {
-                          await ApiService().cancelTransaction(transaction.id);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("❌ Offer cancelled successfully.")),
-                          );
-                          onRated(); // refresh หน้า
-                        } catch (e) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Failed to cancel offer: $e")),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.cancel_outlined),
-                    label: const Text("Cancel Offer"),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                    ),
+                            if (confirm == true) {
+                              try {
+                                await ApiService().cancelTransaction(transaction.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("❌ Offer cancelled successfully.")),
+                                );
+                                onRated(); // refresh หน้า
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("Failed to cancel offer: $e")),
+                                );
+                              }
+                            }
+                          },
+                          icon: const Icon(Icons.cancel_outlined),
+                          label: const Text("Cancel Offer"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.redAccent,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12), // ระยะห่างระหว่างปุ่ม
+
+                      // 🟢 ปุ่ม Confirm (ตอนนี้ยังไม่ทำอะไร)
+                      if (status == 'matching')
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () async {
+                            // 🧭 แสดง Dialog ยืนยันก่อน Confirm
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Confirm Trade?"),
+                                content: const Text("Are you sure you want to confirm this trade?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, false),
+                                    child: const Text("No"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(context, true),
+                                    child: const Text("Yes"),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            // ✅ ถ้าผู้ใช้กดยืนยัน
+                            if (confirm == true) {
+                              try {
+                                await ApiService().confirmTransaction(transaction.id);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(content: Text("✅ Trade confirmed successfully.")),
+                                );
+                                onRated(); // refresh หน้า
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text("❌ Failed to confirm trade: $e")),
+                                );
+                              }
+                            }
+                          },
+                            icon: const Icon(Icons.check_circle_outline),
+                            label: const Text("Confirm"),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kThemeGreen,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                          ),
+                        ),
+                    ],
                   ),
                 ),
-              ),
           ],
         ),
       ),

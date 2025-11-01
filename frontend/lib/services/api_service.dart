@@ -452,24 +452,48 @@ class ApiService {
 
   
   Future<void> cancelTransaction(int transactionId) async {
-  try {
-    print("🟥 Cancelling transaction ID: $transactionId");
+    try {
+      print("🟥 Cancelling transaction ID: $transactionId");
 
-    final response = await _dio.put(
-      '/transactions/cancel',
-      data: {"transactionId": transactionId.toString()},
-    );
+      final response = await _dio.put(
+        '/transactions/cancel',
+        data: {"transactionId": transactionId.toString()},
+      );
 
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      print("✅ Transaction cancelled successfully");
-    } else {
-      throw Exception("Failed to cancel transaction: ${response.statusCode}");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Transaction cancelled successfully");
+      } else {
+        throw Exception("Failed to cancel transaction: ${response.statusCode}");
+      }
+    } on DioException catch (e) {
+      print("❌ DioException cancelling transaction: ${e.response?.data ?? e.message}");
+      throw Exception('Cancel transaction failed: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      throw Exception('Unexpected error cancelling transaction: $e');
     }
-  } on DioException catch (e) {
-    print("❌ DioException cancelling transaction: ${e.response?.data ?? e.message}");
-    throw Exception('Cancel transaction failed: ${e.response?.data ?? e.message}');
-  } catch (e) {
-    throw Exception('Unexpected error cancelling transaction: $e');
   }
-}
+
+  Future<void> confirmTransaction(int transactionId) async {
+    try {
+      final token = await UserStorageService().readUserToken();
+      if (token == null) throw Exception("No token found");
+
+      final payload = {"transactionId": transactionId.toString()};
+      print("🟢 Sending Confirm Payload: ${jsonEncode(payload)}");
+
+      final response = await _dio.put(
+        '/transactions/confirm',
+        data: payload,
+        options: Options(
+          headers: {'Authorization': 'Bearer $token'},
+        ),
+      );
+
+      print("✅ Confirm response: ${response.data}");
+    } catch (e) {
+      print("❌ Error confirming transaction: $e");
+      rethrow;
+    }
+  }
+
 }
