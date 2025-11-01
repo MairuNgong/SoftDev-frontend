@@ -136,6 +136,9 @@ class TransactionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ✨ ตรวจสอบว่าเราเป็นคนที่ offer หรือไม่
+    final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
+    
     final myItems = transaction.tradeItems
         .where((trade) => trade.item.ownerEmail == currentUserEmail)
         .map((trade) => trade.item)
@@ -154,13 +157,12 @@ class TransactionCard extends StatelessWidget {
     // ✨ 6. สร้าง Logic สำหรับตรวจสอบว่าจะแสดงปุ่ม Rate หรือไม่
     final String status = transaction.status.toLowerCase();
     final bool isCompletedOrCancelled = status == 'complete';
-    final bool isCurrentUserOfferer = transaction.offerEmail == currentUserEmail;
     final bool hasRated = isCurrentUserOfferer
         ? transaction.accepterRating != null  // ถ้าฉันเป็น Offerer, ให้เช็คว่า Accepter มีคะแนนหรือยัง
         : transaction.offererRating != null;   // ถ้าฉันเป็น Accepter, ให้เช็คว่า Offerer มีคะแนนหรือยัง
     final bool canRate = isCompletedOrCancelled && !hasRated;
 
-    final statusInfo = _getStatusInfo(transaction.status);
+    final statusInfo = _getStatusInfo(transaction.status, isCurrentUserOfferer);
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -291,7 +293,7 @@ class TransactionCard extends StatelessWidget {
       ),
       trailing: Chip(
         avatar: Icon(statusInfo.icon, size: 16, color: statusInfo.textColor),
-        label: Text(transaction.status, style: TextStyle(color: statusInfo.textColor, fontWeight: FontWeight.w500)),
+        label: Text(statusInfo.label, style: TextStyle(color: statusInfo.textColor, fontWeight: FontWeight.w500)),
         backgroundColor: statusInfo.backgroundColor,
         padding: const EdgeInsets.symmetric(horizontal: 8),
         visualDensity: VisualDensity.compact,
@@ -308,6 +310,188 @@ class TransactionCard extends StatelessWidget {
           fontWeight: FontWeight.w600,
           color: kPrimaryTextColor,
         )),
+      ],
+    );
+  }
+
+  void _showItemDetailDialog(BuildContext context, Item item) {
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        item.name,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: kPrimaryTextColor,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close),
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
+                // Images
+                if (item.itemPictures.isNotEmpty) ...[
+                  SizedBox(
+                    height: 200,
+                    child: PageView.builder(
+                      itemCount: item.itemPictures.length,
+                      itemBuilder: (context, index) {
+                        return ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            item.itemPictures[index],
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                color: Colors.grey.shade200,
+                                child: const Icon(Icons.error_outline, size: 40),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                
+                // Price Range
+                _buildDetailRow(Icons.attach_money, 'Price Range', item.priceRange),
+                const SizedBox(height: 12),
+                
+                // Description
+                _buildDetailRow(Icons.description_outlined, 'Description', item.description ?? 'No description'),
+                const SizedBox(height: 12),
+                
+                // Categories
+                if (item.itemCategories.isNotEmpty) ...[
+                  const Row(
+                    children: [
+                      Icon(Icons.category_outlined, size: 20, color: kThemeGreen),
+                      SizedBox(width: 8),
+                      Text(
+                        'Categories',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: kPrimaryTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: item.itemCategories.map((category) {
+                      return Chip(
+                        label: Text(category),
+                        backgroundColor: kThemeGreen.withOpacity(0.1),
+                        labelStyle: const TextStyle(fontSize: 12),
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        visualDensity: VisualDensity.compact,
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                
+                // Contact Information
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: kThemeGreen.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: kThemeGreen.withOpacity(0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.person_outline, size: 20, color: kThemeGreen),
+                          SizedBox(width: 8),
+                          Text(
+                            'Owner Contact',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: kPrimaryTextColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.email_outlined, size: 16, color: Colors.grey),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              item.ownerEmail,
+                              style: const TextStyle(fontSize: 14),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(IconData icon, String label, String value) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 20, color: kThemeGreen),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: kPrimaryTextColor,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: TextStyle(
+                  color: Colors.grey.shade700,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -343,20 +527,26 @@ class TransactionCard extends StatelessWidget {
                         final imageUrl = item.itemPictures[index];
                         return Padding(
                           padding: const EdgeInsets.only(right: 8.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8.0),
-                            child: Image.network(
-                              imageUrl, width: 70, height: 70, fit: BoxFit.cover,
-                              loadingBuilder: (context, child, progress) {
-                                if (progress == null) return child;
-                                return Container(width: 70, height: 70, color: Colors.grey.shade200);
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: 70, height: 70, color: Colors.grey.shade200,
-                                  child: const Icon(Icons.error_outline, color: Colors.grey),
-                                );
-                              },
+                          child: GestureDetector(
+                            onTap: () {
+                              // เปิดหน้า detail ของ item
+                              _showItemDetailDialog(context, item);
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8.0),
+                              child: Image.network(
+                                imageUrl, width: 70, height: 70, fit: BoxFit.cover,
+                                loadingBuilder: (context, child, progress) {
+                                  if (progress == null) return child;
+                                  return Container(width: 70, height: 70, color: Colors.grey.shade200);
+                                },
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 70, height: 70, color: Colors.grey.shade200,
+                                    child: const Icon(Icons.error_outline, color: Colors.grey),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         );
@@ -372,20 +562,34 @@ class TransactionCard extends StatelessWidget {
     );
   }
   
-_StatusInfo _getStatusInfo(String status) {
+_StatusInfo _getStatusInfo(String status, bool isOfferer) {
   switch (status.toLowerCase()) {
     case 'offering': // กำลังเสนอ/รอคู่
-      return _StatusInfo(
-        icon: Icons.hourglass_top_rounded,
-        backgroundColor: const Color(0xFFFFF8E1), // soft amber
-        textColor: const Color(0xFFF9A825), // amber 800
-      );
+      // ✨ แยกสีตามว่าเราเป็นคนที่ offer หรือถูก offer
+      if (isOfferer) {
+        // เราเป็นคนที่ offer (ส่งข้อเสนอไป)
+        return _StatusInfo(
+          icon: Icons.send_rounded,
+          backgroundColor: const Color(0xFFFFF8E1), // soft amber
+          textColor: const Color(0xFFF9A825), // amber 800
+          label: 'Sent Offer',
+        );
+      } else {
+        // คนอื่น offer มาหาเรา (ได้รับข้อเสนอ)
+        return _StatusInfo(
+          icon: Icons.inbox_rounded,
+          backgroundColor: const Color(0xFFE1F5FE), // soft light blue
+          textColor: const Color(0xFF0277BD), // light blue 800
+          label: 'Received Offer',
+        );
+      }
 
     case 'matching': // กำลังจับคู่
       return _StatusInfo(
         icon: Icons.autorenew_rounded,
         backgroundColor: const Color(0xFFE3F2FD), // soft blue
         textColor: const Color(0xFF1976D2), // blue 700
+        label: 'Matching',
       );
 
     case 'complete': // เสร็จสิ้น
@@ -393,6 +597,7 @@ _StatusInfo _getStatusInfo(String status) {
         icon: Icons.check_circle_rounded,
         backgroundColor: const Color(0xFFE8F5E9), // soft green
         textColor: const Color(0xFF2E7D32), // green 700
+        label: 'Complete',
       );
 
     case 'cancelled': // ยกเลิก
@@ -400,6 +605,7 @@ _StatusInfo _getStatusInfo(String status) {
         icon: Icons.highlight_off_rounded,
         backgroundColor: const Color(0xFFFFEBEE), // soft red
         textColor: const Color(0xFFC62828), // red 700
+        label: 'Cancelled',
       );
 
     default: // ไม่ทราบสถานะ
@@ -407,6 +613,7 @@ _StatusInfo _getStatusInfo(String status) {
         icon: Icons.help_outline_rounded,
         backgroundColor: const Color(0xFFF5F5F5),
         textColor: const Color(0xFF616161),
+        label: status,
       );
   }
 }
@@ -417,6 +624,12 @@ class _StatusInfo {
   final IconData icon;
   final Color backgroundColor;
   final Color textColor;
+  final String label;
 
-  _StatusInfo({required this.icon, required this.backgroundColor, required this.textColor});
+  _StatusInfo({
+    required this.icon, 
+    required this.backgroundColor, 
+    required this.textColor,
+    required this.label,
+  });
 }
