@@ -53,12 +53,12 @@ class _HistoryPageState extends State<HistoryPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kThemeBackground,
-      appBar: AppBar(
-        title: const Text('Trade History'),
-        backgroundColor: kThemeGreen,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      // appBar: AppBar(
+      //   title: const Text('Trade History'),
+      //   backgroundColor: kThemeGreen,
+      //   foregroundColor: Colors.white,
+      //   elevation: 0,
+      // ),
       body: _transactionsFuture == null
           ? const Center(child: CircularProgressIndicator(color: kThemeGreen))
           : FutureBuilder<List<Transaction>>(

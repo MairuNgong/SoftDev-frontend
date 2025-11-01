@@ -113,7 +113,7 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                         ..addAll(selected.map((e) => int.parse(e)));
                     });
 
-                    print("🟢 DEBUG currently selected IDs: $_selectedItemIds");
+                    // print("🟢 DEBUG currently selected IDs: $_selectedItemIds");
                   },
                 ),
               ),
@@ -142,7 +142,7 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                       final item = profileResponse.availableItems.firstWhere(
                         (i) => i.id == id,
                         orElse: () {
-                          print("⚠️ WARN: item id=$id not found in availableItems");
+                          // print("⚠️ WARN: item id=$id not found in availableItems");
                           return profileResponse.availableItems.first;
                         },
                       );
@@ -153,10 +153,10 @@ class _OfferCreationPageState extends State<OfferCreationPage> {
                       };
                     }).toList();
 
-                    print("✅ Selected Target Items ↓↓↓");
-                    for (final item in selectedTargetItems) {
-                      print("- ${item['id']} | ${item['name']} | ${item['image']}");
-                    }
+                    // print("✅ Selected Target Items ↓↓↓");
+                    // for (final item in selectedTargetItems) {
+                    //   print("- ${item['id']} | ${item['name']} | ${item['image']}");
+                    // }
 
                     // 🟢 ไปหน้าเลือกของของเรา พร้อมส่งหลาย item ไปด้วย
                     final selectedMyItems = await Navigator.push<List<Map<String, dynamic>>>(
