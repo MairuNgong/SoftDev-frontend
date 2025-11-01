@@ -188,7 +188,7 @@ class ApiService {
     }
   }
 
-  Future<List<String>> getRequestItems(String email) async {
+  Future<List<Transaction>> getRequestItems(String email) async {
     try {
       final response = await _dio.get(
         '/transactions/get_offer',
@@ -196,11 +196,8 @@ class ApiService {
       );
       final List<dynamic> jsonList = response.data['transactions'] ?? [];
       List<Transaction> transactions = jsonList.map((json) => Transaction.fromJson(json)).toList();
-      List<String> items = transactions
-        .map((t) => jsonEncode(t.toCardJson(email)))
-        .toList();
-      items.removeWhere((itemJson) => itemJson == '{}');
-      return items;
+
+      return transactions;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "Request" items: ${e.message}');
     } catch (e) {
@@ -257,6 +254,36 @@ class ApiService {
     } catch (e) {
       print("❌ Unexpected Error while sending offer: $e");
       throw Exception('Failed to send offer request: $e');
+    }
+  }
+
+  Future<void> acceptOffer(int transactionId) async {
+    try {
+      final body = {
+        "transactionId": transactionId.toString(),
+      };
+
+      final response = await _dio.put(
+        '/transactions/matching',
+        data: body,
+      );
+
+      print("🟢 [ACCEPT OFFER] Response status: ${response.statusCode}");
+      print("🟢 [ACCEPT OFFER] Response data: ${jsonEncode(response.data)}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Offer accepted successfully!");
+      } else {
+        throw Exception(
+          'Failed to accept offer. Server responded with status: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e) {
+      print("❌ DioException while accepting offer: ${e.response?.data ?? e.message}");
+      throw Exception('Failed to accept offer: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      print("❌ Unexpected Error while accepting offer: $e");
+      throw Exception('Failed to accept offer: $e');
     }
   }
 

@@ -1,4 +1,5 @@
 // file: models/transaction_model.dart
+import 'dart:convert'; // Import dart:convert
 import 'package:collection/collection.dart';
 
 // Model ตัวที่ 3 (ในสุด): สำหรับข้อมูล Item
@@ -36,10 +37,15 @@ class Item {
       itemPictures: List<String>.from(json['ItemPictures'] ?? []),
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'name': name,
+    'ItemPictures': itemPictures,
+  };
 }
 
 // Model ตัวที่ 2 (ตรงกลาง): สำหรับข้อมูล TradeItem ที่เชื่อม Transaction กับ Item
-// ไม่มีการเปลี่ยนแปลง
 class TradeItem {
   final Item item;
 
@@ -99,39 +105,24 @@ class Transaction {
     );
   }
 
-  Map<String, dynamic> toCardJson(String currentUserEmail) {
-    if (tradeItems.isEmpty) return {};
-    final itemToReceiveTradeItem = tradeItems.firstWhereOrNull(
-      (ti) => ti.item.ownerEmail != currentUserEmail,
-    );
-
-    if (itemToReceiveTradeItem == null) {
-      return {}; 
-    }
-
-    final Item itemToReceive = itemToReceiveTradeItem.item;
-    final bool isCurrentUserTheOfferer = offerEmail == currentUserEmail;
-    final String otherPartyEmail = isCurrentUserTheOfferer ? accepterEmail : offerEmail;
-    final double? otherPartyRating = isCurrentUserTheOfferer ? accepterRating : offererRating;
-
-    return {
+  String toJsonStringForRequestCard(String currentUserEmail) {
+    final List<Item> itemsToReceive = tradeItems
+        .where((ti) => ti.item.ownerEmail != currentUserEmail)
+        .map((ti) => ti.item)
+        .toList();
+    final List<Item> itemsToGive = tradeItems
+        .where((ti) => ti.item.ownerEmail == currentUserEmail)
+        .map((ti) => ti.item)
+        .toList();
+    final String otherPartyEmail = offerEmail == currentUserEmail ? accepterEmail : offerEmail;
+    final Map<String, dynamic> cardData = {
       'transactionId': id,
       'status': status,
-      
-      // Other Party's details
-      'otherPartyEmail': otherPartyEmail,        // New key for the other user's email
-      'otherPartyRating': otherPartyRating,      // New key for the other user's rating
-
-      // Received Item details (used for display on the card)
-      'id': itemToReceive.id,
-      'name': itemToReceive.name,
-      'description': itemToReceive.description,
-      // The swipe card uses these specific keys for pictures and categories
-      'ItemPictures': itemToReceive.itemPictures,
-      'ItemCategories': itemToReceive.itemCategories,
-
-      'ownerRatingScore': itemToReceive.ownerRatingScore,
+      'otherPartyEmail': otherPartyEmail,
+      'itemsToReceive': itemsToReceive.map((i) => i.toJson()).toList(), 
+      'itemsToGive': itemsToGive.map((i) => i.toJson()).toList(), 
     };
+    return jsonEncode(cardData);
   }
 }
 
