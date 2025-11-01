@@ -77,7 +77,7 @@ class _SelectMyItemsPageState extends State<SelectMyItemsPage> {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Select your items"),
+            title: const Text("เลือกของของคุณ"),
           ),
           body: Column(
             children: [
@@ -136,8 +136,8 @@ class _SelectMyItemsPageState extends State<SelectMyItemsPage> {
                                       icon: const Icon(Icons.check , color: Colors.white),
                     label: Text(
                       _selectedIds.isEmpty
-                          ? "Select at least 1 item"
-                          : "confirm (${_selectedIds.length}) item",
+                          ? "เลือกอย่างน้อย 1 ชิ้น"
+                          : "ยืนยัน (${_selectedIds.length}) ชิ้น",
                           style: const TextStyle(color: Colors.white),
                     ),
                     style: ElevatedButton.styleFrom(

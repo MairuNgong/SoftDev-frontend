@@ -8,6 +8,7 @@ class SwipeCard extends StatefulWidget {
   final void Function(int remainingCount) onItemChangedCallback;
   final void Function(String itemJson) onLikeAction;
   final void Function(String itemJson)? onNopeAction;
+  final Widget Function(BuildContext context, String itemJson)? customCardBuilder;
 
   const SwipeCard({
     super.key, 
@@ -16,6 +17,7 @@ class SwipeCard extends StatefulWidget {
     required this.onItemChangedCallback,
     required this.onLikeAction,
     this.onNopeAction,
+    this.customCardBuilder,
   });
 
   @override
@@ -100,17 +102,22 @@ class _SwipeCardState extends State<SwipeCard> {
                   );
               }
 
-              // 🟢 DEBUG CHECK: Check if this is a 'Request' item (it should have transactionId)
+              // 🟢 LOGIC CHANGE: Check if this is a Request Item (contains transactionId)
               final bool isRequestItem = itemData.containsKey('transactionId');
+              
+              if (isRequestItem && widget.customCardBuilder != null) {
+                // 🟢 Use the custom builder for Request items
+                return widget.customCardBuilder!(context, itemJsonString);
+              }
 
               return Card(
                 margin: const EdgeInsets.all(0.0),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(15.0),
                 ),
                 color: Colors.transparent,
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10.0),
+                  borderRadius: BorderRadius.circular(15.0),
                   child: Stack(
                     children: [
                       Positioned.fill(

@@ -4,7 +4,6 @@ import 'package:frontend/services/api_service.dart';
 import 'package:frontend/models/login/storage_service.dart';
 import 'package:frontend/pages/main_page.dart';
 
-
 const Color kThemeGreen = Color(0xFF6D8469);
 const Color kThemeBackground = Color(0xFFF1EDF2);
 const Color kPrimaryTextColor = Color(0xFF3D423C);
@@ -81,8 +80,8 @@ class OfferSummaryPage extends StatelessWidget {
               child: SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
-                  icon: const Icon(Icons.send, color: Colors.white),
-                  label: const Text("Confirm the exchange",style: TextStyle(color: Colors.white),),
+                  icon: const Icon(Icons.send),
+                  label: const Text("ยืนยันการเสนอแลก"),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kThemeGreen,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -126,13 +125,13 @@ class OfferSummaryPage extends StatelessWidget {
 
                     try {
                       // 🔄 เรียก API
-                      // print("🧾 DEBUG myItems: $myItems");
-                      // print("🧾 DEBUG theirItems: $theirItems");
-                      // print("🧾 DEBUG payload: ${jsonEncode(payload)}");
+                      print("🧾 DEBUG myItems: $myItems");
+                      print("🧾 DEBUG theirItems: $theirItems");
+                      print("🧾 DEBUG payload: ${jsonEncode(payload)}");
                       await api.createOffer(payload);
 
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("The offer has been sent!!")),
+                        const SnackBar(content: Text("🎉 ส่งข้อเสนอเรียบร้อยแล้ว!")),
                       );
 
                     Navigator.of(context).pushAndRemoveUntil(

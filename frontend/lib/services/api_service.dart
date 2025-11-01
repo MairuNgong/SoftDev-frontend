@@ -188,7 +188,7 @@ class ApiService {
     }
   }
 
-  Future<List<String>> getRequestItems(String email) async {
+  Future<List<Transaction>> getRequestItems(String email) async {
     try {
       final response = await _dio.get(
         '/transactions/get_offer',
@@ -196,11 +196,8 @@ class ApiService {
       );
       final List<dynamic> jsonList = response.data['transactions'] ?? [];
       List<Transaction> transactions = jsonList.map((json) => Transaction.fromJson(json)).toList();
-      List<String> items = transactions
-        .map((t) => jsonEncode(t.toCardJson(email)))
-        .toList();
-      items.removeWhere((itemJson) => itemJson == '{}');
-      return items;
+
+      return transactions;
     } on DioException catch (e) {
       throw Exception('Failed to fetch "Request" items: ${e.message}');
     } catch (e) {
