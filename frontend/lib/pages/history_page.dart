@@ -282,50 +282,115 @@ class TransactionCard extends StatelessWidget {
                       // 🟢 ปุ่ม Confirm (ตอนนี้ยังไม่ทำอะไร)
                       if (status == 'matching')
                         Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () async {
-                            // 🧭 แสดง Dialog ยืนยันก่อน Confirm
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Confirm Trade?"),
-                                content: const Text("Are you sure you want to confirm this trade?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, false),
-                                    child: const Text("No"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.pop(context, true),
-                                    child: const Text("Yes"),
-                                  ),
-                                ],
-                              ),
-                            );
+                          child: isCurrentUserOfferer
+                              ? (isOffererConfirmed && !isAccepterConfirmed)
+                                  ? Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          "Pending",
+                                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    )
+                                  : ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text("Confirm Trade?"),
+                                            content: const Text("Are you sure you want to confirm this trade?"),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(context, false),
+                                                  child: const Text("No")),
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(context, true),
+                                                  child: const Text("Yes")),
+                                            ],
+                                          ),
+                                        );
 
-                            // ✅ ถ้าผู้ใช้กดยืนยัน
-                            if (confirm == true) {
-                              try {
-                                await ApiService().confirmTransaction(transaction.id);
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text("✅ Trade confirmed successfully.")),
-                                );
-                                onRated(); // refresh หน้า
-                              } catch (e) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(content: Text("❌ Failed to confirm trade: $e")),
-                                );
-                              }
-                            }
-                          },
-                            icon: const Icon(Icons.check_circle_outline),
-                            label: const Text("Confirm"),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: kThemeGreen,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                            ),
-                          ),
+                                        if (confirm == true) {
+                                          try {
+                                            await ApiService().confirmTransaction(transaction.id);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text("✅ Trade confirmed successfully.")),
+                                            );
+                                            onRated();
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("❌ Failed to confirm trade: $e")),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.check_circle_outline),
+                                      label: const Text("Confirm"),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: kThemeGreen,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                    )
+                              : (isAccepterConfirmed && !isOffererConfirmed)
+                                  ? Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        color: Colors.grey.shade200,
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          "Pending",
+                                          style: TextStyle(color: Colors.grey, fontWeight: FontWeight.w500),
+                                        ),
+                                      ),
+                                    )
+                                  : ElevatedButton.icon(
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: const Text("Confirm Trade?"),
+                                            content: const Text("Are you sure you want to confirm this trade?"),
+                                            actions: [
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(context, false),
+                                                  child: const Text("No")),
+                                              TextButton(
+                                                  onPressed: () => Navigator.pop(context, true),
+                                                  child: const Text("Yes")),
+                                            ],
+                                          ),
+                                        );
+
+                                        if (confirm == true) {
+                                          try {
+                                            await ApiService().confirmTransaction(transaction.id);
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(content: Text("✅ Trade confirmed successfully.")),
+                                            );
+                                            onRated();
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(content: Text("❌ Failed to confirm trade: $e")),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: const Icon(Icons.check_circle_outline),
+                                      label: const Text("Confirm"),
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: kThemeGreen,
+                                        foregroundColor: Colors.white,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                      ),
+                                    ),
                         ),
                     ],
                   ),
