@@ -281,7 +281,7 @@ class _HomePageState extends State<HomePage> {
     final int itemIndex = requestItems.indexOf(itemJson);
 
     try {
-      // await _apiService.acceptOffer(transactionId);
+      await _apiService.acceptOffer(transactionId);
       print("🟢 Accepting offer for transaction ID: $transactionId");
       if (mounted) {
         if (itemIndex != -1) {
@@ -379,13 +379,6 @@ class _HomePageState extends State<HomePage> {
                                 }
                               },)
                           : requestItems.isNotEmpty 
-                            // ? SwipeCard(  // Request
-                            //     items: requestItems,
-                            //     key: ValueKey(requestItems.length),
-                            //     onStackFinishedCallback: () => _fetchRequest(isRefetch: true),
-                            //     onItemChangedCallback: (remainingCount) {},
-                            //     onLikeAction: _handleAcceptOffer,
-                            //     onNopeAction: null,)
                             ? SwipeCard(
                                 items: requestItems, // List of specialized JSON strings
                                 key: ValueKey(requestItems.length), 
@@ -396,10 +389,8 @@ class _HomePageState extends State<HomePage> {
                                     _fetchRequest(isRefetch: true); 
                                   }
                                 },
-                                // 🟢 Use the custom handlers for accept/reject
                                 onLikeAction: _handleAcceptOffer, // Swipe Right = Accept
                                 onNopeAction: _handleRejectOffer, // Swipe Left = Reject
-                                // 🟢 NEW: Custom builder to render the two-row layout inside the swipe card
                                 customCardBuilder: _buildRequestSwipeCard,
                               )
                             : Center(

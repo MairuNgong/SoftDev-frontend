@@ -257,6 +257,36 @@ class ApiService {
     }
   }
 
+  Future<void> acceptOffer(int transactionId) async {
+    try {
+      final body = {
+        "transactionId": transactionId.toString(),
+      };
+
+      final response = await _dio.put(
+        '/transactions/matching',
+        data: body,
+      );
+
+      print("🟢 [ACCEPT OFFER] Response status: ${response.statusCode}");
+      print("🟢 [ACCEPT OFFER] Response data: ${jsonEncode(response.data)}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Offer accepted successfully!");
+      } else {
+        throw Exception(
+          'Failed to accept offer. Server responded with status: ${response.statusCode}',
+        );
+      }
+    } on DioException catch (e) {
+      print("❌ DioException while accepting offer: ${e.response?.data ?? e.message}");
+      throw Exception('Failed to accept offer: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      print("❌ Unexpected Error while accepting offer: $e");
+      throw Exception('Failed to accept offer: $e');
+    }
+  }
+
   Future<void> createItemWithImage({
     required String name,
     required String priceRange,
