@@ -129,7 +129,28 @@ class _SearchPageState extends State<SearchPage> {
                   : _errorMessage != null
                       ? Center(child: Text(_errorMessage!))
                       : _searchResults.isEmpty
-                          ? const Center(child: Text("No results found"))
+                          // ? const Center(child: Text("No results found"))
+                          ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                            Icon(
+                              Icons.search_off,
+                              size: 80,
+                              color: Color(0xFF6D8469).withOpacity(0.5),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "No results found",
+                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: Color(0xFF6D8469)),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Your searched items will appear here.',
+                              style: TextStyle(color: Colors.grey),
+                              textAlign: TextAlign.center,
+                            ),
+                          ]
+                          )
                           : GridView.builder(
                               gridDelegate:
                                   const SliverGridDelegateWithFixedCrossAxisCount(
