@@ -216,7 +216,7 @@ Widget build(BuildContext context) {
                 });
               }
             },
-            backgroundColor: const Color(0xFF5B7C6E),
+            backgroundColor: const Color(0xFF748873),
             shape: const CircleBorder(),
             child: const Icon(Icons.add, color: Colors.white),
           ),

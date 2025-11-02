@@ -88,10 +88,10 @@ class _AddItemPageState extends State<AddItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4EF),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Add Item"),
-        backgroundColor: const Color(0xFF5B7C6E),
+        backgroundColor: const  Color(0xFF748873),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -104,7 +104,7 @@ class _AddItemPageState extends State<AddItemPage> {
                 onTap: _pickImage,
                 child: CircleAvatar(
                   radius: 80,
-                  backgroundColor: const Color(0xFF5B7C6E),
+                  backgroundColor: const  Color(0xFF748873),
                   backgroundImage:
                       _selectedImage != null ? FileImage(_selectedImage!) : null,
                   child: _selectedImage == null
@@ -145,7 +145,7 @@ class _AddItemPageState extends State<AddItemPage> {
                         _maxPrice = values.end;
                       });
                     },
-                    activeColor: const Color(0xFF5B7C6E),
+                    activeColor: const Color(0xFF748873),
                   ),
                   Text("฿${_minPrice.toInt()} - ฿${_maxPrice.toInt()}"),
                 ],
@@ -175,10 +175,10 @@ class _AddItemPageState extends State<AddItemPage> {
                 children: _categories.map((cat) {
                   final selected = _selectedCategories.contains(cat['name']);
                   return FilterChip(
-                    avatar: Icon(cat['icon'], color: selected ? Colors.white : const Color(0xFF5B7C6E)),
+                    avatar: Icon(cat['icon'], color: selected ? Colors.white : const Color(0xFF748873)),
                     label: Text(cat['name']),
                     selected: selected,
-                    selectedColor: const Color(0xFF5B7C6E),
+                    selectedColor: const Color(0xFF748873),
                     checkmarkColor: Colors.white,
                     labelStyle: TextStyle(
                       color: selected ? Colors.white : Colors.black87,
@@ -201,7 +201,7 @@ class _AddItemPageState extends State<AddItemPage> {
               ElevatedButton(
                 onPressed: _submitItem,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5B7C6E),
+                  backgroundColor: const Color(0xFF748873),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   minimumSize: const Size.fromHeight(50),
                 ),
