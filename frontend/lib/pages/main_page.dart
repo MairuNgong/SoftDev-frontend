@@ -54,13 +54,17 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color appBarContentColor = Color.fromARGB(255, 247, 244, 234);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF748873),
+        iconTheme: const IconThemeData(
+          color: appBarContentColor, // Use the defined color for icons
+        ),
         title: Text(
           'TWINDER',
           style: GoogleFonts.marcellusSc(   // ✅ ใช้ฟอนต์ Marcellus SC
-            color: Colors.white,
+            color: appBarContentColor,
             fontSize: 24,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.5,
@@ -84,10 +88,10 @@ class _MainPageState extends State<MainPage> {
         animationDuration: const Duration(milliseconds: 300),
         index: _index,
         items: const [
-          Icon(Icons.home, size: 30, color: Colors.white),
-          Icon(Icons.search, size: 30, color: Colors.white),
-          Icon(Icons.person, size: 30, color: Colors.white),
-          Icon(Icons.access_time_filled, size: 30, color: Colors.white),
+          Icon(Icons.home, size: 30, color: appBarContentColor),
+          Icon(Icons.search, size: 30, color: appBarContentColor),
+          Icon(Icons.person, size: 30, color: appBarContentColor),
+          Icon(Icons.access_time_filled, size: 30, color: appBarContentColor),
         ],
         onTap: (i) {
           setState(() => _index = i);
