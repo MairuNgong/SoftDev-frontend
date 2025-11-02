@@ -257,7 +257,7 @@ class ApiService {
     }
   }
 
-  Future<void> acceptOffer(int transactionId) async {
+  Future<String> acceptOffer(int transactionId) async {
     try {
       final body = {
         "transactionId": transactionId.toString(),
@@ -267,7 +267,7 @@ class ApiService {
         '/transactions/matching',
         data: body,
       );
-
+      
       print("🟢 [ACCEPT OFFER] Response status: ${response.statusCode}");
       print("🟢 [ACCEPT OFFER] Response data: ${jsonEncode(response.data)}");
 
@@ -278,12 +278,46 @@ class ApiService {
           'Failed to accept offer. Server responded with status: ${response.statusCode}',
         );
       }
+
+      return response.data?['message']?.toString() ?? 'Offer accepted successfully.';
     } on DioException catch (e) {
       print("❌ DioException while accepting offer: ${e.response?.data ?? e.message}");
       throw Exception('Failed to accept offer: ${e.response?.data ?? e.message}');
     } catch (e) {
       print("❌ Unexpected Error while accepting offer: $e");
       throw Exception('Failed to accept offer: $e');
+    }
+  }
+
+  Future<String> cancelOffer(int transactionId) async {
+    try {
+      final body = {
+        "transactionId": transactionId.toString(),
+      };
+
+      final response = await _dio.put(
+        '/transactions/cancel',
+        data: body,
+      );
+
+      print("🟢 [CANCEL OFFER] Response status: ${response.statusCode}");
+      print("🟢 [CANCEL OFFER] Response data: ${jsonEncode(response.data)}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        print("✅ Offer cancelled successfully!");
+      } else {
+        throw Exception(
+          'Failed to cancel offer. Server responded with status: ${response.statusCode}',
+        );
+      }
+
+      return response.data?['message']?.toString() ?? 'Offer cancelled successfully.';
+    } on DioException catch (e) {
+      print("❌ DioException while cancelling offer: ${e.response?.data ?? e.message}");
+      throw Exception('Failed to cancel offer: ${e.response?.data ?? e.message}');
+    } catch (e) {
+      print("❌ Unexpected Error while cancelling offer: $e");
+      throw Exception('Failed to cancel offer: $e');
     }
   }
 

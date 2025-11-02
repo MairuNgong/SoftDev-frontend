@@ -54,13 +54,17 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    const Color appBarContentColor = Color.fromARGB(255, 247, 244, 234);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF748873),
+        iconTheme: const IconThemeData(
+          color: appBarContentColor, // Use the defined color for icons
+        ),
         title: Text(
           'TWINDER',
           style: GoogleFonts.marcellusSc(   // ✅ ใช้ฟอนต์ Marcellus SC
-            color: Colors.white,
+            color: appBarContentColor,
             fontSize: 24,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.5,
