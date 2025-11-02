@@ -19,6 +19,11 @@ class HistoryPage extends StatefulWidget {
 }
 
 class _HistoryPageState extends State<HistoryPage> {
+  // Status filter options
+  final List<String> _statusOptions = [
+    'All', 'Complete', 'Cancelled', 'Matching', 'Received Offer'
+  ];
+  String _selectedStatus = 'All';
   Future<List<Transaction>>? _transactionsFuture;
   String? _currentUserEmail;
 
@@ -52,13 +57,6 @@ class _HistoryPageState extends State<HistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: kThemeBackground,
-      appBar: AppBar(
-        title: const Text('Trade History'),
-        backgroundColor: kThemeGreen,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
       body: _transactionsFuture == null
           ? const Center(child: CircularProgressIndicator(color: kThemeGreen))
           : FutureBuilder<List<Transaction>>(
@@ -101,17 +99,113 @@ class _HistoryPageState extends State<HistoryPage> {
                 // ✨ 3. เรียงข้อมูล Transaction จากใหม่ไปเก่า โดยใช้ updatedAt
                 transactions.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                  itemCount: transactions.length,
-                  itemBuilder: (context, index) {
-                    final transaction = transactions[index];
-                    return TransactionCard(
-                      transaction: transaction,
-                      currentUserEmail: _currentUserEmail!,
-                      onRated: _refreshTransactions, // ✨ 4. ส่งฟังก์ชัน refresh ไปให้ Card
-                    );
-                  },
+                // Filter transactions by status
+                List<Transaction> filteredTransactions;
+                switch (_selectedStatus) {
+                  case 'Complete':
+                    filteredTransactions = transactions.where((t) => t.status.toLowerCase() == 'complete').toList();
+                    break;
+                  case 'Cancelled':
+                    filteredTransactions = transactions.where((t) => t.status.toLowerCase() == 'cancelled').toList();
+                    break;
+                  case 'Matching':
+                    filteredTransactions = transactions.where((t) => t.status.toLowerCase() == 'matching').toList();
+                    break;
+                  case 'Received Offer':
+                    filteredTransactions = transactions.where((t) => t.status.toLowerCase() == 'offering' && t.accepterEmail == _currentUserEmail).toList();
+                    break;
+                  case 'All':
+                  default:
+                    filteredTransactions = transactions;
+                }
+
+                return Column(
+                  children: [
+                    // Title above status filter bar
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0, left: 16.0, bottom: 8.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          'Trade History',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: kThemeGreen,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Status filter bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 0.0, horizontal: 8.0),
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _statusOptions.map((status) {
+                            final bool selected = _selectedStatus == status;
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8.0),
+                              child: ChoiceChip(
+                                label: Text(status),
+                                selected: selected,
+                                selectedColor: kThemeGreen,
+                                labelStyle: TextStyle(
+                                  color: selected ? Colors.white : kThemeGreen,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                backgroundColor: Colors.grey.shade200,
+                                onSelected: (val) {
+                                  setState(() {
+                                    _selectedStatus = status;
+                                  });
+                                },
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: filteredTransactions.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.history_toggle_off_outlined,
+                                    size: 80,
+                                    color: kThemeGreen.withOpacity(0.2),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'No transactions for "$_selectedStatus"',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(color: kThemeGreen),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Your "$_selectedStatus" trades will appear here.',
+                                    style: TextStyle(color: Colors.grey),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.symmetric(vertical: 8.0),
+                              itemCount: filteredTransactions.length,
+                              itemBuilder: (context, index) {
+                                final transaction = filteredTransactions[index];
+                                return TransactionCard(
+                                  transaction: transaction,
+                                  currentUserEmail: _currentUserEmail!,
+                                  onRated: _refreshTransactions,
+                                );
+                              },
+                            ),
+                    ),
+                  ],
                 );
               },
             ),
@@ -169,7 +263,7 @@ class TransactionCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withOpacity(0.5),
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       clipBehavior: Clip.antiAlias,

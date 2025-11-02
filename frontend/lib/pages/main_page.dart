@@ -88,10 +88,10 @@ class _MainPageState extends State<MainPage> {
         animationDuration: const Duration(milliseconds: 300),
         index: _index,
         items: const [
-          Icon(Icons.home, size: 30, color: Colors.white),
-          Icon(Icons.search, size: 30, color: Colors.white),
-          Icon(Icons.person, size: 30, color: Colors.white),
-          Icon(Icons.access_time_filled, size: 30, color: Colors.white),
+          Icon(Icons.home, size: 30, color: appBarContentColor),
+          Icon(Icons.search, size: 30, color: appBarContentColor),
+          Icon(Icons.person, size: 30, color: appBarContentColor),
+          Icon(Icons.access_time_filled, size: 30, color: appBarContentColor),
         ],
         onTap: (i) {
           setState(() => _index = i);

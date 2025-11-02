@@ -62,11 +62,6 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 244, 239, 239),
-      appBar: AppBar(
-        title: const Text('Search / Filter'),
-        backgroundColor: const Color(0xFF6D8469),
-      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -90,7 +85,7 @@ class _SearchPageState extends State<SearchPage> {
                       color: const Color(0xFF6D8469),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(Icons.search, color: Colors.white),
+                    child: const Icon(Icons.search, color: Color.fromARGB(255, 247, 244, 234)),
                   ),
                 ),
               ),
