@@ -151,7 +151,7 @@ class _RatingPageState extends State<RatingPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4EF),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF5B7C6E),
+        backgroundColor: const Color(0xFF748873),
         elevation: 0,
         centerTitle: true,
         title: const Text('Rate Your Experience', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white, fontSize: 20)),
@@ -175,7 +175,7 @@ class _RatingPageState extends State<RatingPage> {
                     width: 100, 
                     child: Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFF5B7C6E),
+                        color: Color(0xFF748873),
                       ),
                     ),
                   )
@@ -185,7 +185,7 @@ class _RatingPageState extends State<RatingPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: const Color(0xFFCAD7C8),
-                      border: Border.all(color: const Color(0xFF5B7C6E), width: 3),
+                      border: Border.all(color: const Color(0xFF748873), width: 3),
                       image: opponentImageUrl != null
                           ? DecorationImage(
                               image: NetworkImage(opponentImageUrl),
@@ -194,7 +194,7 @@ class _RatingPageState extends State<RatingPage> {
                           : null,
                     ),
                     child: opponentImageUrl == null
-                        ? const Icon(Icons.person_rounded, size: 60, color: Color(0xFF5B7C6E))
+                        ? const Icon(Icons.person_rounded, size: 60, color: Color(0xFF748873))
                         : null,
                   ),
             const SizedBox(height: 16),
@@ -207,7 +207,7 @@ class _RatingPageState extends State<RatingPage> {
                   padding: const EdgeInsets.only(top: 4.0),
                   child: Text(
                     _opponentProfile!.user.location!,
-                    style: TextStyle(fontSize: 16, color: Color(0xFF5B7C6E)),
+                    style: TextStyle(fontSize: 16, color: Color(0xFF748873)),
                   ),
                 )
               : SizedBox.shrink(),
@@ -228,7 +228,7 @@ class _RatingPageState extends State<RatingPage> {
                     SizedBox(width: 4),
                     Text(
                       'Current Rating: ${_opponentProfile!.user.ratingScore}',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF5B7C6E)),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Color(0xFF748873)),
                     ),
                   ],
                 ),
@@ -264,13 +264,13 @@ class _RatingPageState extends State<RatingPage> {
               child: ElevatedButton(
                 onPressed: _isLoading ? null : _submitRating,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF5B7C6E),
+                  backgroundColor: const Color(0xFF748873),
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
                   ),
                   elevation: 5,
-                  shadowColor: const Color(0xFF5B7C6E).withOpacity(0.4),
+                  shadowColor: const Color(0xFF748873).withOpacity(0.4),
                 ),
                 child: _isLoading
                     ? const SizedBox(
